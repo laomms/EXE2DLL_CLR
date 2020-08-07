@@ -4,8 +4,13 @@
 #include <iostream>
 #include "ExeToDll.h"
 
+#pragma comment(lib,"user32.lib")
+
 using namespace EXE2DLL;
 
+#ifndef PAGE_SIZE
+#define PAGE_SIZE 0x1000
+#endif
 
 #ifdef _WIN64
 typedef unsigned __int64 size_t;
@@ -19,7 +24,7 @@ BYTE* pe_ptr;
 size_t v_size;
 size_t out_size;
 size_t last_sec;
-
+bool is64b;
 
 typedef struct _BASE_RELOCATION_ENTRY {
     WORD Offset : 12;
@@ -482,7 +487,8 @@ bool exeToDllPatch()
 
     BYTE* back_stub = back_stub32;
     size_t stub_size = sizeof(back_stub32);
-    if (is64bit) {
+
+    if (is64b) {
         back_stub = back_stub64;
         stub_size = sizeof(back_stub64);
     }
@@ -501,8 +507,11 @@ bool dump_to_file(IN const char* out_path, IN PBYTE dump_data, IN size_t dump_si
 {
     if (!out_path || !dump_data || !dump_size) return false;
 
-    HANDLE file = CreateFileA(out_path, GENERIC_WRITE, FILE_SHARE_WRITE, 0, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
+   
+    HANDLE file = CreateFileA("1.dll", GENERIC_WRITE, FILE_SHARE_WRITE, 0, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
     if (file == INVALID_HANDLE_VALUE) {
+        DWORD errStatus = GetLastError();
+        printf("\nError in Opening Device....Error Status = %d", errStatus);
 #ifdef _DEBUG
         std::cerr << "Cannot open the file for writing!" << std::endl;
 #endif
@@ -788,27 +797,348 @@ bool savePe(const char* out_path)
     return is_ok;
 }
 
-int exe2dll(char* filename, char* outfile)
+ALIGNED_BUF load_file(IN const char* filename, OUT size_t& read_size)
+{
+    HANDLE file = CreateFileA(filename, GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
+    if (file == INVALID_HANDLE_VALUE) {
+#ifdef _DEBUG
+        std::cerr << "Could not open file!" << std::endl;
+#endif
+        return nullptr;
+    }
+    HANDLE mapping = CreateFileMapping(file, 0, PAGE_READONLY, 0, 0, 0);
+    if (!mapping) {
+#ifdef _DEBUG
+        std::cerr << "Could not create mapping!" << std::endl;
+#endif
+        CloseHandle(file);
+        return nullptr;
+    }
+    BYTE* dllRawData = (BYTE*)MapViewOfFile(mapping, FILE_MAP_READ, 0, 0, 0);
+    if (!dllRawData) {
+#ifdef _DEBUG
+        std::cerr << "Could not map view of file" << std::endl;
+#endif
+        CloseHandle(mapping);
+        CloseHandle(file);
+        return nullptr;
+    }
+    size_t r_size = GetFileSize(file, 0);
+    if (read_size != 0 && read_size <= r_size) {
+        r_size = read_size;
+    }
+    if (IsBadReadPtr(dllRawData, r_size)) {
+        std::cerr << "[-] Mapping of " << filename << " is invalid!" << std::endl;
+        UnmapViewOfFile(dllRawData);
+        CloseHandle(mapping);
+        CloseHandle(file);
+        return nullptr;
+    }
+    ALIGNED_BUF localCopyAddress = alloc_aligned(r_size, PAGE_READWRITE,0);
+    if (localCopyAddress != nullptr) {
+        memcpy(localCopyAddress, dllRawData, r_size);
+        read_size = r_size;
+    }
+    else {
+        read_size = 0;
+#ifdef _DEBUG
+        std::cerr << "Could not allocate memory in the current process" << std::endl;
+#endif
+    }
+    UnmapViewOfFile(dllRawData);
+    CloseHandle(mapping);
+    CloseHandle(file);
+    return localCopyAddress;
+}
+
+IMAGE_NT_HEADERS32* get_nt_hdrs32(IN const BYTE* payload)
+{
+    if (!payload) return nullptr;
+
+    BYTE* ptr = get_nt_hdrs(payload,0);
+    if (!ptr) return nullptr;
+
+    if (!is64bit(payload)) {
+        return (IMAGE_NT_HEADERS32*)ptr;
+    }
+    return nullptr;
+}
+
+IMAGE_NT_HEADERS64* get_nt_hdrs64(IN const BYTE* payload)
+{
+    if (payload == nullptr) return nullptr;
+
+    BYTE* ptr = get_nt_hdrs(payload,0);
+    if (!ptr) return nullptr;
+
+    if (is64bit(payload)) {
+        return (IMAGE_NT_HEADERS64*)ptr;
+    }
+    return nullptr;
+}
+
+DWORD get_image_size(IN const BYTE* payload)
+{
+    if (!get_nt_hdrs(payload,0)) {
+        return 0;
+    }
+    DWORD image_size = 0;
+    if (is64bit(payload)) {
+        IMAGE_NT_HEADERS64* nt64 = get_nt_hdrs64(payload);
+        image_size = nt64->OptionalHeader.SizeOfImage;
+    }
+    else {
+        IMAGE_NT_HEADERS32* nt32 = get_nt_hdrs32(payload);
+        image_size = nt32->OptionalHeader.SizeOfImage;
+    }
+    return image_size;
+}
+
+BYTE* load_no_sec_pe(BYTE* dllRawData, size_t r_size, OUT size_t& v_size, bool executable)
+{
+    ULONGLONG desired_base = 0;
+    size_t out_size = (r_size < PAGE_SIZE) ? PAGE_SIZE : r_size;
+    if (executable) {
+        desired_base = get_image_base(dllRawData);
+        out_size = get_image_size(dllRawData);
+    }
+    DWORD protect = (executable) ? PAGE_EXECUTE_READWRITE : PAGE_READWRITE;
+    BYTE* mappedPE = alloc_pe_buffer(out_size, protect, desired_base);
+    if (!mappedPE) {
+        return NULL;
+    }
+    memcpy(mappedPE, dllRawData, r_size);
+    v_size = out_size;
+    return mappedPE;
+}
+
+bool has_relocations(IN const BYTE* pe_buffer)
+{
+    IMAGE_DATA_DIRECTORY* relocDir = get_directory_entry(pe_buffer, IMAGE_DIRECTORY_ENTRY_BASERELOC,0);
+    if (!relocDir) {
+        return false;
+    }
+    return true;
+}
+
+bool sections_raw_to_virtual(IN const BYTE* payload, IN SIZE_T payloadSize, OUT BYTE* destBuffer, IN SIZE_T destBufferSize)
+{
+    if (!payload || !destBuffer) return false;
+
+    bool is64b = is64bit(payload);
+
+    BYTE* payload_nt_hdr = get_nt_hdrs(payload,0);
+    if (payload_nt_hdr == NULL) {
+        std::cerr << "Invalid payload: " << std::hex << (ULONGLONG)payload << std::endl;
+        return false;
+    }
+
+    IMAGE_FILE_HEADER* fileHdr = NULL;
+    DWORD hdrsSize = 0;
+    LPVOID secptr = NULL;
+    if (is64b) {
+        IMAGE_NT_HEADERS64* payload_nt_hdr64 = (IMAGE_NT_HEADERS64*)payload_nt_hdr;
+        fileHdr = &(payload_nt_hdr64->FileHeader);
+        hdrsSize = payload_nt_hdr64->OptionalHeader.SizeOfHeaders;
+        secptr = (LPVOID)((ULONGLONG) & (payload_nt_hdr64->OptionalHeader) + fileHdr->SizeOfOptionalHeader);
+    }
+    else {
+        IMAGE_NT_HEADERS32* payload_nt_hdr32 = (IMAGE_NT_HEADERS32*)payload_nt_hdr;
+        fileHdr = &(payload_nt_hdr32->FileHeader);
+        hdrsSize = payload_nt_hdr32->OptionalHeader.SizeOfHeaders;
+        secptr = (LPVOID)((ULONGLONG) & (payload_nt_hdr32->OptionalHeader) + fileHdr->SizeOfOptionalHeader);
+    }
+
+    DWORD first_raw = 0;
+    //copy all the sections, one by one:
+    SIZE_T raw_end = 0;
+    for (WORD i = 0; i < fileHdr->NumberOfSections; i++) {
+        PIMAGE_SECTION_HEADER next_sec = (PIMAGE_SECTION_HEADER)((ULONGLONG)secptr + (IMAGE_SIZEOF_SECTION_HEADER * i));
+        if (!validate_ptr((const LPVOID)payload, destBufferSize, next_sec, IMAGE_SIZEOF_SECTION_HEADER)) {
+            return false;
+        }
+        if (next_sec->PointerToRawData == 0 || next_sec->SizeOfRawData == 0) {
+            continue; //skipping empty
+        }
+        LPVOID section_mapped = destBuffer + next_sec->VirtualAddress;
+        LPVOID section_raw_ptr = (BYTE*)payload + next_sec->PointerToRawData;
+        SIZE_T sec_size = next_sec->SizeOfRawData;
+        raw_end = next_sec->SizeOfRawData + next_sec->PointerToRawData;
+
+        if ((next_sec->VirtualAddress + sec_size) > destBufferSize) {
+            std::cerr << "[!] Virtual section size is out ouf bounds: " << std::hex << sec_size << std::endl;
+            sec_size = (destBufferSize > next_sec->VirtualAddress) ? SIZE_T(destBufferSize - next_sec->VirtualAddress) : 0;
+            std::cerr << "[!] Truncated to maximal size: " << std::hex << sec_size << ", buffer size:" << destBufferSize << std::endl;
+        }
+        if (next_sec->VirtualAddress >= destBufferSize && sec_size != 0) {
+            std::cerr << "[-] VirtualAddress of section is out ouf bounds: " << std::hex << next_sec->VirtualAddress << std::endl;
+            return false;
+        }
+        if (next_sec->PointerToRawData + sec_size > destBufferSize) {
+            std::cerr << "[-] Raw section size is out ouf bounds: " << std::hex << sec_size << std::endl;
+            return false;
+        }
+        // validate source:
+        if (!validate_ptr((const LPVOID)payload, payloadSize, section_raw_ptr, sec_size)) {
+            std::cerr << "[-] Section " << i << ":  out ouf bounds, skipping... " << std::endl;
+            continue;
+        }
+        // validate destination:
+        if (!validate_ptr(destBuffer, destBufferSize, section_mapped, sec_size)) {
+            std::cerr << "[-] Section " << i << ":  out ouf bounds, skipping... " << std::endl;
+            continue;
+        }
+        memcpy(section_mapped, section_raw_ptr, sec_size);
+        if (first_raw == 0 || (next_sec->PointerToRawData < first_raw)) {
+            first_raw = next_sec->PointerToRawData;
+        }
+    }
+
+    //copy payload's headers:
+    if (hdrsSize == 0) {
+        hdrsSize = first_raw;
+#ifdef _DEBUG
+        std::cout << "hdrsSize not filled, using calculated size: " << std::hex << hdrsSize << "\n";
+#endif
+    }
+    if (!validate_ptr((const LPVOID)payload, destBufferSize, (const LPVOID)payload, hdrsSize)) {
+        return false;
+    }
+    memcpy(destBuffer, payload, hdrsSize);
+    return true;
+}
+
+BYTE* pe_raw_to_virtual(    IN const BYTE* payload,    IN size_t in_size,    OUT size_t& out_size,    IN OPTIONAL bool executable,    IN OPTIONAL ULONGLONG desired_base)
+{
+    //check payload:
+    BYTE* nt_hdr = get_nt_hdrs(payload,0);
+    if (nt_hdr == NULL) {
+        std::cerr << "Invalid payload: " << std::hex << (ULONGLONG)payload << std::endl;
+        return nullptr;
+    }
+    DWORD payloadImageSize = 0;
+
+    bool is64 = is64bit(payload);
+    if (is64) {
+        IMAGE_NT_HEADERS64* payload_nt_hdr = (IMAGE_NT_HEADERS64*)nt_hdr;
+        payloadImageSize = payload_nt_hdr->OptionalHeader.SizeOfImage;
+    }
+    else {
+        IMAGE_NT_HEADERS32* payload_nt_hdr = (IMAGE_NT_HEADERS32*)nt_hdr;
+        payloadImageSize = payload_nt_hdr->OptionalHeader.SizeOfImage;
+    }
+
+    DWORD protect = executable ? PAGE_EXECUTE_READWRITE : PAGE_READWRITE;
+
+    //first we will prepare the payload image in the local memory, so that it will be easier to edit it, apply relocations etc.
+    //when it will be ready, we will copy it into the space reserved in the target process
+    BYTE* localCopyAddress = alloc_pe_buffer(payloadImageSize, protect, desired_base);
+    if (localCopyAddress == NULL) {
+        std::cerr << "Could not allocate memory in the current process" << std::endl;
+        return NULL;
+    }
+    //printf("Allocated local memory: %p size: %x\n", localCopyAddress, payloadImageSize);
+    if (!sections_raw_to_virtual(payload, in_size, (BYTE*)localCopyAddress, payloadImageSize)) {
+        std::cerr << "Could not copy PE file" << std::endl;
+        return NULL;
+    }
+    out_size = payloadImageSize;
+    return localCopyAddress;
+}
+
+BYTE* load_pe_module(BYTE* dllRawData, size_t r_size, OUT size_t& v_size, bool executable, bool relocate)
+{
+    if (!get_nt_hdrs(dllRawData,0)) {
+        return NULL;
+    }
+    if (get_sections_count(dllRawData, r_size) == 0) {
+        return load_no_sec_pe(dllRawData, r_size, v_size, executable);
+    }
+    // by default, allow to load the PE at any base:
+    ULONGLONG desired_base = NULL;
+    // if relocating is required, but the PE has no relocation table...
+    if (relocate && !has_relocations(dllRawData)) {
+        // ...enforce loading the PE image at its default base (so that it will need no relocations)
+        desired_base = get_image_base(dllRawData);
+    }
+    // load a virtual image of the PE file at the desired_base address (random if desired_base is NULL):
+    BYTE* mappedDLL = pe_raw_to_virtual(dllRawData, r_size, v_size, executable, desired_base);
+    if (mappedDLL) {
+        //if the image was loaded at its default base, relocate_module will return always true (because relocating is already done)
+        if (relocate && !relocate_module(mappedDLL, v_size, (ULONGLONG)mappedDLL,0)) {
+            // relocating was required, but it failed - thus, the full PE image is useless
+            printf("Could not relocate the module!");
+            free_pe_buffer(mappedDLL, v_size);
+            mappedDLL = NULL;
+        }
+    }
+    else {
+        printf("Could not allocate memory at the desired base!\n");
+    }
+    return mappedDLL;
+}
+
+BYTE* load_pe_module(const char* filename, OUT size_t& v_size, bool executable, bool relocate)
+{
+    size_t r_size = 0;
+    BYTE* dllRawData = load_file(filename, r_size);
+    if (!dllRawData) {
+#ifdef _DEBUG
+        std::cerr << "Cannot load the file: " << filename << std::endl;
+#endif
+        return NULL;
+    }
+    BYTE* mappedPE = load_pe_module(dllRawData, r_size, v_size, executable, relocate);
+    free_pe_buffer(dllRawData,0);
+    return mappedPE;
+}
+
+DWORD get_entry_point_rva(IN const BYTE* pe_buffer)
+{
+    bool is64b = is64bit(pe_buffer);
+    //update image base in the written content:
+    BYTE* payload_nt_hdr = get_nt_hdrs(pe_buffer,0);
+    if (!payload_nt_hdr) {
+        return 0;
+    }
+    DWORD value = 0;
+    if (is64b) {
+        IMAGE_NT_HEADERS64* payload_nt_hdr64 = (IMAGE_NT_HEADERS64*)payload_nt_hdr;
+        value = payload_nt_hdr64->OptionalHeader.AddressOfEntryPoint;
+    }
+    else {
+        IMAGE_NT_HEADERS32* payload_nt_hdr32 = (IMAGE_NT_HEADERS32*)payload_nt_hdr;
+        value = payload_nt_hdr32->OptionalHeader.AddressOfEntryPoint;
+    }
+    return value;
+}
+
+int exe2dll(const char* filename, const  char* outfile)
 {  
-    
+    pe_ptr = load_pe_module(filename, v_size, false, false);
+    if (!pe_ptr)
+    {
+        MessageBoxA(nullptr, "Load moudle failed!", "EXE2DLL", MB_OK | MB_ICONERROR);
+        return 2;
+    }
+    DWORD ep = get_entry_point_rva(pe_ptr);
+    bool is64b = is64bit(pe_ptr);
     if (isDll()) {
-        std::cout << "It is already a DLL!" << std::endl;
+        MessageBoxA(nullptr, "It is already a DLL!", "EXE2DLL", MB_OK | MB_ICONERROR);
         return -1;
     }
     if (!isConvertable()) {
-        std::cout << "[!] Converting not possible: relocation table missing or invalid!" << std::endl;
+        MessageBoxA(nullptr, "Converting not possible: relocation table missing or invalid!", "EXE2DLL", MB_OK | MB_ICONERROR);       
         return -1;
     }
     setExe();
-    if (exeToDllPatch()) {
-        std::cout << "[OK] Converted successfuly." << std::endl;
-    }
-    else {
-        std::cout << "Could not convert!" << std::endl;
+    if (!exeToDllPatch()) 
+    {    
+        MessageBoxA(nullptr, "Could not convert!", "EXE2DLL", MB_OK | MB_ICONERROR);
         return -1;
     }
     if (savePe(outfile)) {
-        std::cout << "[OK] Module dumped to: " << outfile << std::endl;
+        MessageBoxA(nullptr, "File saved!", "EXE2DLL", MB_OK | MB_ICONERROR);
     }
     return 0;
 }

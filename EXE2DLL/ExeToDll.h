@@ -1,10 +1,9 @@
 #pragma once
 #include <Windows.h>
 
+int exe2dll(const char* filename, const  char* outfile);
 
 namespace EXE2DLL{
-
-
 
     class RelocBlockCallback
     {

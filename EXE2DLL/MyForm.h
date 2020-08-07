@@ -13,6 +13,7 @@
 #include "PE_INFO.h"
 #include "frm_PEInfo.h"
 #include "frm_Directory.h"
+#include "ExeToDll.h"
 
 
 
@@ -89,6 +90,7 @@ namespace EXE2DLL
 	private: System::Windows::Forms::ToolStripMenuItem^ DeletExoprtFuncMenu;
 	private: System::Windows::Forms::ToolStripMenuItem^ pEInfoMenu;
 	private: System::Windows::Forms::ToolStripMenuItem^ dataDirectoryMenu;
+	private: System::Windows::Forms::SaveFileDialog^ saveFileDialog1;
 
 
 
@@ -137,6 +139,7 @@ namespace EXE2DLL
 			this->AddExporFuncMenuI = (gcnew System::Windows::Forms::ToolStripMenuItem());
 			this->ModifyExportFuncMenu = (gcnew System::Windows::Forms::ToolStripMenuItem());
 			this->DeletExoprtFuncMenu = (gcnew System::Windows::Forms::ToolStripMenuItem());
+			this->saveFileDialog1 = (gcnew System::Windows::Forms::SaveFileDialog());
 			this->contextMenuStrip1->SuspendLayout();
 			this->groupBox1->SuspendLayout();
 			this->tabControl1->SuspendLayout();
@@ -204,8 +207,9 @@ namespace EXE2DLL
 			this->button2->Name = L"button2";
 			this->button2->Size = System::Drawing::Size(58, 29);
 			this->button2->TabIndex = 2;
-			this->button2->Text = L"Export";
+			this->button2->Text = L"Save";
 			this->button2->UseVisualStyleBackColor = true;
+			this->button2->Click += gcnew System::EventHandler(this, &MyForm::button2_Click);
 			// 
 			// label1
 			// 
@@ -489,14 +493,32 @@ namespace EXE2DLL
 
 
 
-private: System::Void pEInfoMenu_Click(System::Object^ sender, System::EventArgs^ e) {
-	frm_PEInfo^ frm = gcnew frm_PEInfo;
-	frm->Show();
+    private: System::Void pEInfoMenu_Click(System::Object^ sender, System::EventArgs^ e) 
+    {
+	    frm_PEInfo^ frm = gcnew frm_PEInfo;
+	    frm->Show();
 
-}
-private: System::Void dataDirectoryMenu_Click(System::Object^ sender, System::EventArgs^ e) {
-	frm_Directory^ frm = gcnew frm_Directory;
-	frm->Show();
-}
+    }
+    private: System::Void dataDirectoryMenu_Click(System::Object^ sender, System::EventArgs^ e) 
+    {
+	    frm_Directory^ frm = gcnew frm_Directory;
+	    frm->Show();
+    }
+    private: System::Void button2_Click(System::Object^ sender, System::EventArgs^ e) 
+    {
+		Stream^ myStream;
+		SaveFileDialog^ saveFileDialog1 = gcnew SaveFileDialog;
+		saveFileDialog1->Filter = "dll files (*.dll)|*.dll";
+		saveFileDialog1->FilterIndex = 1;
+		saveFileDialog1->RestoreDirectory = true;
+		if (saveFileDialog1->ShowDialog() == System::Windows::Forms::DialogResult::OK)
+		{
+			if ((myStream = saveFileDialog1->OpenFile()) != nullptr)
+			{
+				exe2dll((const char*)(void*)Marshal::StringToHGlobalAnsi(EXE2DLL::EXETODLL::FilePath), (const char*)(void*)Marshal::StringToHGlobalAnsi(saveFileDialog1->FileName));
+			}
+			
+		}
+    }
 };
 }
