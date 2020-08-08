@@ -6,6 +6,8 @@
 #include "imagehlp.h"
 #include <vector>
 #include <sstream>
+#include "EXE2DLL.h"
+#include "ExeToDll.h"
 #pragma comment(lib,"Imagehlp.lib")
 
 #ifdef _WIN64
@@ -238,6 +240,49 @@ size_t add_section(const char* path, const char* section_name, DWORD VirtualSize
 	UnmapViewOfFile((PVOID)pView);
 	CloseHandle(hFileMapping);
 	return SectionRVA;
+}
+
+DWORD get_hdrs_size(IN const BYTE* pe_buffer)
+{
+	bool is64b = is64bit(pe_buffer);
+	BYTE* payload_nt_hdr = get_nt_hdrs(pe_buffer);
+	if (!payload_nt_hdr) {
+		return 0;
+	}
+	DWORD hdrs_size = 0;
+	if (is64b) {
+		IMAGE_NT_HEADERS64* payload_nt_hdr64 = (IMAGE_NT_HEADERS64*)payload_nt_hdr;
+		hdrs_size = payload_nt_hdr64->OptionalHeader.SizeOfHeaders;
+	}
+	else {
+		IMAGE_NT_HEADERS32* payload_nt_hdr32 = (IMAGE_NT_HEADERS32*)payload_nt_hdr;
+		hdrs_size = payload_nt_hdr32->OptionalHeader.SizeOfHeaders;
+	}
+	return hdrs_size;
+}
+
+
+
+PIMAGE_SECTION_HEADER get_last_section(IN const PBYTE pe_buffer, IN size_t pe_size, IN bool is_raw)
+{
+	SIZE_T module_end = get_hdrs_size(pe_buffer);
+	const size_t sections_count = get_sections_count(pe_buffer, pe_size);
+	if (sections_count == 0) {
+		return nullptr;
+	}
+	PIMAGE_SECTION_HEADER last_sec = nullptr;
+	//walk through sections
+	for (size_t i = 0; i < sections_count; i++) {
+		PIMAGE_SECTION_HEADER sec = get_section_hdr(pe_buffer, pe_size, i);
+		if (!sec) break;
+
+		size_t new_end = is_raw ? (sec->PointerToRawData + sec->SizeOfRawData) : (sec->VirtualAddress + sec->Misc.VirtualSize);
+		if (new_end > module_end) {
+			module_end = new_end;
+			last_sec = sec;
+		}
+	}
+	return last_sec;
 }
 
 DWORD RvaToFoa(DWORD FileBuff, DWORD Rva)
@@ -630,7 +675,7 @@ int GetExpTableList(const char* file_name, std::vector<string>& funlist)
 	pImg_DOS_Header = (PIMAGE_DOS_HEADER)lpFileBase;
 	pImg_NT_Header = (PIMAGE_NT_HEADERS)((LONG)pImg_DOS_Header + (LONG)pImg_DOS_Header->e_lfanew);
 
-	if (IsBadReadPtr(pImg_NT_Header, sizeof(IMAGE_NT_HEADERS))		|| pImg_NT_Header->Signature != IMAGE_NT_SIGNATURE)
+	if (IsBadReadPtr(pImg_NT_Header, sizeof(IMAGE_NT_HEADERS))|| pImg_NT_Header->Signature != IMAGE_NT_SIGNATURE)
 	{
 		UnmapViewOfFile(lpFileBase);
 		CloseHandle(hFileMapping);
@@ -648,6 +693,8 @@ int GetExpTableList(const char* file_name, std::vector<string>& funlist)
 	}
 	pImg_Export_Dir = (PIMAGE_EXPORT_DIRECTORY)ImageRvaToVa(pImg_NT_Header,pImg_DOS_Header, (DWORD)pImg_Export_Dir, 0);
 
+
+
 	DWORD** ppdwNames = (DWORD**)pImg_Export_Dir->AddressOfNames;
 
 	ppdwNames = (PDWORD*)ImageRvaToVa(pImg_NT_Header,pImg_DOS_Header, (DWORD)ppdwNames, 0);
@@ -657,6 +704,31 @@ int GetExpTableList(const char* file_name, std::vector<string>& funlist)
 		CloseHandle(hFileMapping);
 		CloseHandle(hFile);
 		return 2;
+	}
+
+
+	//寻找导出表所在区段
+	PIMAGE_DOS_HEADER dosHeader = (PIMAGE_DOS_HEADER)lpFileBase;
+	PIMAGE_NT_HEADERS ntHeaders = (PIMAGE_NT_HEADERS)((UINT_PTR)lpFileBase + dosHeader->e_lfanew);
+	PIMAGE_SECTION_HEADER pSecHeader = (PIMAGE_SECTION_HEADER)((PUCHAR)pImg_NT_Header + sizeof(IMAGE_NT_HEADERS));
+	PIMAGE_OPTIONAL_HEADER pOptionalHeader = (PIMAGE_OPTIONAL_HEADER)((DWORD)ntHeaders + 4 + IMAGE_SIZEOF_FILE_HEADER);
+	DWORD dwRva = pOptionalHeader->DataDirectory[0].VirtualAddress;
+	PIMAGE_EXPORT_DIRECTORY pExportDirectory;
+	PIMAGE_SECTION_HEADER pSectionHeader = IMAGE_FIRST_SECTION(ntHeaders);
+	for (int i = 0; i < ntHeaders->FileHeader.NumberOfSections; i++, pSectionHeader++) {
+		if (pSecHeader[i].Misc.VirtualSize == 0)break;
+		DWORD dwSectionBeginRva = pSecHeader[i].VirtualAddress;
+		DWORD dwSectionEndRva = pSecHeader[i].VirtualAddress + pSecHeader[i].SizeOfRawData;
+		if (dwRva >= dwSectionBeginRva && dwRva <= dwSectionEndRva) {
+			DWORD aa= pSecHeader[i].Characteristics ;
+			EXE2DLL::section_name = "";
+			for (DWORD j = 0; j < IMAGE_SIZEOF_SHORT_NAME; j++)
+			{
+				char name[62];
+				sprintf_s(name, "%c", pSectionHeader->Name[j]);
+				EXE2DLL::section_name += name;
+			}
+		}
 	}
 
 	UINT nNoOfExports = pImg_Export_Dir->NumberOfNames;
@@ -670,7 +742,7 @@ int GetExpTableList(const char* file_name, std::vector<string>& funlist)
 		char nFunc[32];
 		sprintf_s(nFunc, "0x%08X", pAddressOfFunctions); //"0x%s"
 		std::string FunRVA(nFunc);
-		std::string items = FunRVA + "@" + szFunc;
+		std::string items = FunRVA + "@" + szFunc + "@" + EXE2DLL::section_name;
 		funlist.push_back(items);
 		ppdwNames++;
 	}

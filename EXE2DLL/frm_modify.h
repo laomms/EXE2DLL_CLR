@@ -14,13 +14,12 @@ namespace EXE2DLL {
 	/// </summary>
 	public ref class frm_modify : public System::Windows::Forms::Form
 	{
+	public:	static frm_modify^ MyInstance;
 	public:
 		frm_modify(void)
 		{
 			InitializeComponent();
-			//
-			//TODO:  在此处添加构造函数代码
-			//
+			MyInstance = this;
 		}
 
 	protected:
@@ -35,11 +34,16 @@ namespace EXE2DLL {
 			}
 		}
 	private: System::Windows::Forms::Label^ label1;
+	public: System::Windows::Forms::TextBox^ textBox1;
+	private:
 	protected:
-	private: System::Windows::Forms::TextBox^ textBox1;
+
 	private: System::Windows::Forms::Label^ label2;
-	private: System::Windows::Forms::TextBox^ textBox2;
-	private: System::Windows::Forms::TextBox^ textBox3;
+	public: System::Windows::Forms::TextBox^ textBox2;
+	private:
+	public: System::Windows::Forms::TextBox^ textBox3;
+
+
 	private: System::Windows::Forms::Label^ label3;
 	private: System::Windows::Forms::Button^ button1;
 	private: System::Windows::Forms::ToolTip^ toolTip1;
@@ -111,16 +115,16 @@ namespace EXE2DLL {
 			this->textBox3->Name = L"textBox3";
 			this->textBox3->Size = System::Drawing::Size(217, 20);
 			this->textBox3->TabIndex = 5;
-			this->textBox3->Text = L"e.g.  stdcall";
+			this->textBox3->Text = L"e.g.  .idata";
 			// 
 			// label3
 			// 
 			this->label3->AutoSize = true;
-			this->label3->Location = System::Drawing::Point(2, 70);
+			this->label3->Location = System::Drawing::Point(7, 70);
 			this->label3->Name = L"label3";
-			this->label3->Size = System::Drawing::Size(54, 13);
+			this->label3->Size = System::Drawing::Size(46, 13);
 			this->label3->TabIndex = 4;
-			this->label3->Text = L"Comment:";
+			this->label3->Text = L"Section:";
 			// 
 			// button1
 			// 
@@ -165,9 +169,16 @@ namespace EXE2DLL {
     {
 		if (EXE2DLL::EXETODLL::FilePath == nullptr) return;
 		if (textBox1->Text == "" || textBox2->Text == "") return;
+		if (modifyflag = true)			
+			EXETODLL::ModifyExtportFuncton(EXE2DLL::EXETODLL::FilePath, "MyFunc2", textBox1->Text, Convert::ToUInt32(textBox2->Text->Replace("0x", "")->Replace("0X", "")));
+		else
+		{
+			
 
-		EXETODLL::AddExtportFuncton(EXE2DLL::EXETODLL::FilePath, ".laomms", textBox1->Text, Convert::ToUInt32(textBox2->Text));
-		EXETODLL::ModifyExtportFuncton(EXE2DLL::EXETODLL::FilePath, "MyFunc2", "NewFuncs", Convert::ToUInt32(textBox2->Text));
+			EXETODLL::AddExtportFuncton(EXE2DLL::EXETODLL::FilePath, ".laomms", textBox1->Text, Convert::ToUInt32(textBox2->Text->Replace("0x", "")->Replace("0X", "")));
+
+		}
+		
     }
 };
 }

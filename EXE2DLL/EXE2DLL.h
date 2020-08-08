@@ -25,6 +25,8 @@ namespace EXE2DLL
 	static std::vector<std::string>  DataDirectory;
 	static std::vector<std::string>  Sectionlist;
 	static std::vector<std::string>  funlist;
+	static bool modifyflag;
+	static std::string section_name;
 
 	public  ref class EXETODLL
 	{

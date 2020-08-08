@@ -256,6 +256,7 @@ namespace EXE2DLL
 			this->listView1->Size = System::Drawing::Size(589, 178);
 			this->listView1->TabIndex = 4;
 			this->listView1->UseCompatibleStateImageBehavior = false;
+			this->listView1->SelectedIndexChanged += gcnew System::EventHandler(this, &MyForm::listView1_SelectedIndexChanged);
 			// 
 			// tabPage2
 			// 
@@ -279,6 +280,7 @@ namespace EXE2DLL
 			this->listView2->Size = System::Drawing::Size(589, 177);
 			this->listView2->TabIndex = 3;
 			this->listView2->UseCompatibleStateImageBehavior = false;
+			this->listView2->SelectedIndexChanged += gcnew System::EventHandler(this, &MyForm::listView2_SelectedIndexChanged);
 			// 
 			// contextMenuStrip2
 			// 
@@ -308,6 +310,7 @@ namespace EXE2DLL
 			this->ModifyExportFuncMenu->Name = L"ModifyExportFuncMenu";
 			this->ModifyExportFuncMenu->Size = System::Drawing::Size(172, 22);
 			this->ModifyExportFuncMenu->Text = L"ModifyExportFunc";
+			this->ModifyExportFuncMenu->Click += gcnew System::EventHandler(this, &MyForm::ModifyExportFuncMenu_Click);
 			// 
 			// DeletExoprtFuncMenu
 			// 
@@ -359,7 +362,7 @@ namespace EXE2DLL
 		this->listView2->Columns->Add("NO.", 40, HorizontalAlignment::Center);
 		this->listView2->Columns->Add("FuncRVA.", 150, HorizontalAlignment::Center);
 		this->listView2->Columns->Add("FuncName", 200, HorizontalAlignment::Center);
-		this->listView2->Columns->Add("Comment", this->listView1->Width - 200 - 150 - 40 - 5, HorizontalAlignment::Center);
+		this->listView2->Columns->Add("Section", this->listView1->Width - 200 - 150 - 40 - 5, HorizontalAlignment::Center);
 	}
 
 	private: System::Void textBox1_DragEnter(System::Object^ sender, System::Windows::Forms::DragEventArgs^ e)
@@ -375,12 +378,14 @@ namespace EXE2DLL
 			DataDirectory.clear();
 			Sectionlist.clear();
 			funlist.clear();
-
+			EXE2DLL::section_name = "";
+			this->listView1->Items->Clear();
+			this->listView2->Items->Clear();
 
 			int hRes = GetPeInfo((const char*)(void*)Marshal::StringToHGlobalAnsi(textBox1->Text), PElist, DataDirectory, Sectionlist);
 			if (hRes == 0)
 			{
-				this->listView1->Items->Clear();
+
 				this->listView1->BeginUpdate();
 				for (int i = 0; i < Sectionlist.size(); ++i)
 				{
@@ -400,7 +405,6 @@ namespace EXE2DLL
 
 			int res = GetExpTableList((const char*)(void*)Marshal::StringToHGlobalAnsi(textBox1->Text), funlist);
 			if (res == 0)			{
-				this->listView2->Items->Clear();
 				this->listView2->BeginUpdate();
 				for (int i = 0; i < funlist.size(); ++i)
 				{
@@ -409,6 +413,7 @@ namespace EXE2DLL
 					lvi->Text = (i+1).ToString();
 					lvi->SubItems->Add(str->Split('@')[0]->ToString());
 					lvi->SubItems->Add(str->Split('@')[1]->ToString());
+					lvi->SubItems->Add(str->Split('@')[2]->ToString());
 					listView2->Items->Add(lvi);
 				}
 				this->listView2->EndUpdate();
@@ -437,12 +442,13 @@ namespace EXE2DLL
 			DataDirectory.clear();
 			Sectionlist.clear();
 			funlist.clear();
+			EXE2DLL::section_name = "";
+			this->listView1->Items->Clear();
+			this->listView2->Items->Clear();
 			
 			int hRes=GetPeInfo((const char*)(void*)Marshal::StringToHGlobalAnsi(textBox1->Text), PElist, DataDirectory,  Sectionlist);
 			if (hRes == 0)
 			{
-
-				this->listView1->Items->Clear();
 				this->listView1->BeginUpdate();
 				for (int i = 0; i < Sectionlist.size(); ++i)
 				{
@@ -463,7 +469,6 @@ namespace EXE2DLL
 			int res= GetExpTableList((const char*)(void*)Marshal::StringToHGlobalAnsi(textBox1->Text), funlist);
 			if (res == 0)
 			{
-				this->listView2->Items->Clear();
 				this->listView2->BeginUpdate();
 				for (int i = 0; i < funlist.size(); ++i)
 				{
@@ -480,14 +485,36 @@ namespace EXE2DLL
 	}
 	private: System::Void toolStripMenuItem1_Click(System::Object^ sender, System::EventArgs^ e)
 	{
+		modifyflag = false;
 		frm_section^ stForm = gcnew frm_section;
 		stForm->Show();
 	}
 
 	private: System::Void AddExporFuncMenuI_Click(System::Object^ sender, System::EventArgs^ e)
 	{
+		modifyflag = false;
 		frm_modify^ mfForm = gcnew frm_modify();
 		mfForm->Show();
+		if (EXE2DLL::section_name == "")
+		{
+			HANDLE hFile = CreateFileA((const char*)(void*)Marshal::StringToHGlobalAnsi(EXE2DLL::EXETODLL::FilePath), GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+			//获取文件大小
+			DWORD dwFileSize = GetFileSize(hFile, NULL);
+			CHAR* pFileBuf = new CHAR[dwFileSize];
+			//将文件读取到内存
+			DWORD ReadSize = 0;
+			ReadFile(hFile, pFileBuf, dwFileSize, &ReadSize, NULL);
+			PIMAGE_SECTION_HEADER last_section=get_last_section((PBYTE)pFileBuf, dwFileSize, true);			
+			for (DWORD i = 0; i < IMAGE_SIZEOF_SHORT_NAME; i++)
+			{
+				char name[62];
+				sprintf_s(name, "%c", last_section->Name[i]);
+				EXE2DLL::section_name += name;
+			}
+			CloseHandle(hFile);
+		}
+		frm_modify::MyInstance->textBox3->Text = gcnew String( EXE2DLL::section_name.c_str());
+		
 	}
 
 
@@ -514,12 +541,31 @@ namespace EXE2DLL
 		saveFileDialog1->FileName= System::IO::Path::GetFileName(EXE2DLL::EXETODLL::FilePath)->Replace("exe","dll");
 		if (saveFileDialog1->ShowDialog() == System::Windows::Forms::DialogResult::OK)
 		{
-			//if ((myStream = saveFileDialog1->OpenFile()) != nullptr)
-			//{
-				exe2dll((const char*)(void*)Marshal::StringToHGlobalAnsi(EXE2DLL::EXETODLL::FilePath), (const char*)(void*)Marshal::StringToHGlobalAnsi(saveFileDialog1->FileName));
-			//}
-			
+			exe2dll((const char*)(void*)Marshal::StringToHGlobalAnsi(EXE2DLL::EXETODLL::FilePath), (const char*)(void*)Marshal::StringToHGlobalAnsi(saveFileDialog1->FileName));
 		}
     }
+    private: System::Void ModifyExportFuncMenu_Click(System::Object^ sender, System::EventArgs^ e) 
+    {
+	    modifyflag = true;
+		frm_modify^ mfForm = gcnew frm_modify();
+		mfForm->Show();
+		if (listView2->SelectedItems->Count > 0)
+		{
+			frm_modify::MyInstance->textBox1->Text = listView2->SelectedItems[0]->SubItems[2]->Text;
+			frm_modify::MyInstance->textBox2->Text = listView2->SelectedItems[0]->SubItems[1]->Text;
+			frm_modify::MyInstance->textBox3->Text = listView2->SelectedItems[0]->SubItems[3]->Text;
+		}
+
+		
+    }
+    private: System::Void listView1_Click(System::Object^ sender, System::EventArgs^ e) 
+	{
+		
+    }
+    private: System::Void listView2_SelectedIndexChanged(System::Object^ sender, System::EventArgs^ e)
+	{
+    }
+private: System::Void listView1_SelectedIndexChanged(System::Object^ sender, System::EventArgs^ e) {
+}
 };
 }

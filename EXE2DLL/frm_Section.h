@@ -1,6 +1,8 @@
 #pragma once
 #include "EXE2DLL.h"
 #include "PE_INFO.h"
+#include <string>
+#include <msclr\marshal_cppstd.h>
 
 #ifdef _WIN64
 typedef unsigned __int64 size_t;
@@ -22,6 +24,7 @@ namespace EXE2DLL {
 	using namespace System::Threading;
 	using namespace System::IO;
 	using namespace System::Runtime::InteropServices;
+	using namespace msclr::interop;
 
 	/// <summary>
 	/// Summary for  frm_section
@@ -177,6 +180,7 @@ namespace EXE2DLL {
 		EXETODLL::AddSection(EXE2DLL::EXETODLL::FilePath,textBox1->Text, Convert::ToUInt32(textBox2->Text), textBox3->Text, RvaRawData);
 		if (RvaRawData != (UInt32)0)
 		{
+			EXE2DLL::section_name = marshal_as<std::string>(textBox1->Text);
 			//ListViewItem^ lvi = gcnew ListViewItem();
 			//lvi->Text = textBox1->Text;
 			//lvi->SubItems->Add(textBox2->Text);

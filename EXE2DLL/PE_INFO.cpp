@@ -94,7 +94,7 @@ int GetPeInfo(const char* file_name, std::vector<std::string>& PElist, std::vect
 	PElist.push_back(data);
 	memset(data, 0, 32);
 
-	printf("======================= 目 录 表 =======================\n");
+
 	//获取目录表头指针
 	PIMAGE_DATA_DIRECTORY pDataDirectory = pOptionalHeader->DataDirectory;
 	for (DWORD i = 0; i < IMAGE_NUMBEROF_DIRECTORY_ENTRIES; i++)
@@ -112,7 +112,6 @@ int GetPeInfo(const char* file_name, std::vector<std::string>& PElist, std::vect
 	printf("======================= 区 段 表 =======================\n");
 	//获取区段表头指针
 	PIMAGE_SECTION_HEADER pSectionHeader = IMAGE_FIRST_SECTION(pNtHeader);
-	printf("名称      VOffset   VSize     ROffset   RSize     标志\n");
 	//获取区段个数
 	DWORD dwSectionNum = pFileHeader->NumberOfSections;
 	//根据区段个数遍历区段信息
