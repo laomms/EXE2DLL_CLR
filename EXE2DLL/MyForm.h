@@ -508,15 +508,16 @@ namespace EXE2DLL
     {
 		Stream^ myStream;
 		SaveFileDialog^ saveFileDialog1 = gcnew SaveFileDialog;
-		saveFileDialog1->Filter = "dll files (*.dll)|*.dll";
+		saveFileDialog1->Filter = "dll files (*.dll)|*.dll|All files (*.*)|*.*";
 		saveFileDialog1->FilterIndex = 1;
 		saveFileDialog1->RestoreDirectory = true;
+		saveFileDialog1->FileName= System::IO::Path::GetFileName(EXE2DLL::EXETODLL::FilePath)->Replace("exe","dll");
 		if (saveFileDialog1->ShowDialog() == System::Windows::Forms::DialogResult::OK)
 		{
-			if ((myStream = saveFileDialog1->OpenFile()) != nullptr)
-			{
+			//if ((myStream = saveFileDialog1->OpenFile()) != nullptr)
+			//{
 				exe2dll((const char*)(void*)Marshal::StringToHGlobalAnsi(EXE2DLL::EXETODLL::FilePath), (const char*)(void*)Marshal::StringToHGlobalAnsi(saveFileDialog1->FileName));
-			}
+			//}
 			
 		}
     }

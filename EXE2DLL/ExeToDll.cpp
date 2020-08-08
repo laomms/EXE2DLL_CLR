@@ -508,13 +508,14 @@ bool dump_to_file(IN const char* out_path, IN PBYTE dump_data, IN size_t dump_si
     if (!out_path || !dump_data || !dump_size) return false;
 
    
-    HANDLE file = CreateFileA("1.dll", GENERIC_WRITE, FILE_SHARE_WRITE, 0, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
+    HANDLE file = CreateFileA(out_path, GENERIC_WRITE, FILE_SHARE_WRITE, 0, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
     if (file == INVALID_HANDLE_VALUE) {
         DWORD errStatus = GetLastError();
         printf("\nError in Opening Device....Error Status = %d", errStatus);
 #ifdef _DEBUG
         std::cerr << "Cannot open the file for writing!" << std::endl;
 #endif
+        CloseHandle(file);
         return false;
     }
     DWORD written_size = 0;
@@ -1138,7 +1139,7 @@ int exe2dll(const char* filename, const  char* outfile)
         return -1;
     }
     if (savePe(outfile)) {
-        MessageBoxA(nullptr, "File saved!", "EXE2DLL", MB_OK | MB_ICONERROR);
+        MessageBoxA(nullptr, "File saved!", "EXE2DLL", MB_OK | MB_ICONINFORMATION);
     }
     return 0;
 }
