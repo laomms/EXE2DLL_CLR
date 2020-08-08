@@ -283,7 +283,7 @@ namespace EXE2DLL
 			this->listView2->Size = System::Drawing::Size(589, 177);
 			this->listView2->TabIndex = 3;
 			this->listView2->UseCompatibleStateImageBehavior = false;
-	
+			this->listView2->Click += gcnew System::EventHandler(this, &MyForm::listView2_Click);
 			// 
 			// contextMenuStrip2
 			// 
@@ -499,6 +499,8 @@ namespace EXE2DLL
 		modifyflag = false;
 		frm_modify^ mfForm = gcnew frm_modify();
 		mfForm->Show();
+		frm_modify::MyInstance->textBox2->Enabled = false;
+		frm_modify::MyInstance->textBox3->Enabled = false;
 		if (EXE2DLL::section_name.empty()==true && EXE2DLL::EXETODLL::FilePath != nullptr )
 		{
 			HANDLE hFile = CreateFileA((const char*)(void*)Marshal::StringToHGlobalAnsi(EXE2DLL::EXETODLL::FilePath), GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
@@ -553,6 +555,8 @@ namespace EXE2DLL
 	    modifyflag = true;
 		frm_modify^ mfForm = gcnew frm_modify();
 		mfForm->Show();
+		frm_modify::MyInstance->textBox2->Enabled = false;
+		frm_modify::MyInstance->textBox3->Enabled = false;
 		if (listView2->SelectedItems->Count > 0)
 		{
 			EXE2DLL::fun_name= marshal_as<std::string>(listView2->SelectedItems[0]->SubItems[2]->Text);
@@ -566,8 +570,19 @@ namespace EXE2DLL
 	{
 		if (listView2->SelectedItems->Count > 0)
 		{
+			EXETODLL::ModifyExtportFuncton(EXE2DLL::EXETODLL::FilePath, gcnew String(EXE2DLL::fun_name.c_str()), "", 0);
+			updatecontrol();
+		}
+    }
+
+
+    private: System::Void listView2_Click(System::Object^ sender, System::EventArgs^ e)
+	{
+		if (listView2->SelectedItems->Count > 0)
+		{
+			EXE2DLL::fun_name = marshal_as<std::string>(listView2->SelectedItems[0]->SubItems[2]->Text);
 			
 		}
     }
-};
+    };
 }

@@ -32,6 +32,25 @@ void updatecontrol()
 	EXE2DLL::MyForm::TheInstance->listView1->Items->Clear();
 	EXE2DLL::MyForm::TheInstance->listView2->Items->Clear();
 
+	if (EXE2DLL::section_name.empty() == true && EXE2DLL::EXETODLL::FilePath != nullptr)
+	{
+		HANDLE hFile = CreateFileA((const char*)(void*)Marshal::StringToHGlobalAnsi(EXE2DLL::EXETODLL::FilePath), GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+		//获取文件大小
+		DWORD dwFileSize = GetFileSize(hFile, NULL);
+		CHAR* pFileBuf = new CHAR[dwFileSize];
+		//将文件读取到内存
+		DWORD ReadSize = 0;
+		ReadFile(hFile, pFileBuf, dwFileSize, &ReadSize, NULL);
+		PIMAGE_SECTION_HEADER last_section = get_last_section((PBYTE)pFileBuf, dwFileSize, true);
+		for (DWORD i = 0; i < IMAGE_SIZEOF_SHORT_NAME; i++)
+		{
+			char name[62];
+			sprintf_s(name, "%c", last_section->Name[i]);
+			EXE2DLL::section_name += name;
+		}
+		CloseHandle(hFile);
+	}
+
 	int hRes = GetPeInfo((const char*)(void*)Marshal::StringToHGlobalAnsi(EXE2DLL::EXETODLL::FilePath), PElist, DataDirectory, Sectionlist);
 	if (hRes == 0)
 	{
@@ -63,6 +82,7 @@ void updatecontrol()
 			lvi->Text = (i + 1).ToString();
 			lvi->SubItems->Add(str->Split('@')[0]->ToString());
 			lvi->SubItems->Add(str->Split('@')[1]->ToString());
+			lvi->SubItems->Add(gcnew String(EXE2DLL::section_name.c_str()));
 			EXE2DLL::MyForm::TheInstance->listView2->Items->Add(lvi);
 		}
 		EXE2DLL::MyForm::TheInstance->listView2->EndUpdate();

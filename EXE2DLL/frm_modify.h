@@ -171,11 +171,15 @@ namespace EXE2DLL {
 		if (textBox1->Text == "" || textBox2->Text == "") return;
 		if (modifyflag = true)
 		{
-			EXETODLL::ModifyExtportFuncton(EXE2DLL::EXETODLL::FilePath, gcnew String(EXE2DLL::fun_name.c_str()), textBox1->Text, Convert::ToUInt32(textBox2->Text->Replace("0x", "")->Replace("0X", "")));
+			int hexNumber;
+			sscanf((marshal_as<std::string>(textBox2->Text)).c_str(), "%x", &hexNumber);
+			EXETODLL::ModifyExtportFuncton(EXE2DLL::EXETODLL::FilePath, gcnew String(EXE2DLL::fun_name.c_str()), textBox1->Text, hexNumber);
 		}
 		else
 		{
-			EXETODLL::AddExtportFuncton(EXE2DLL::EXETODLL::FilePath, textBox3->Text, textBox1->Text, Convert::ToUInt32(textBox2->Text->Replace("0x", "")->Replace("0X", "")));
+			int hexNumber;
+			sscanf((marshal_as<std::string>(textBox2->Text)).c_str(), "%x", &hexNumber);
+			EXETODLL::AddExtportFuncton(EXE2DLL::EXETODLL::FilePath, textBox3->Text, textBox1->Text, hexNumber);
 		}
 		
 		updatecontrol();
