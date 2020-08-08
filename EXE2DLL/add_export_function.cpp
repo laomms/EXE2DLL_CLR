@@ -628,6 +628,7 @@ BOOL modify_export_table(const char* file_name, const char* old_name, const char
 				memcpy(pAddressOfFunctions, (char*)(DWORD)&FuncRva,  4);
 				LPVOID pNames = (LPVOID)(pView + RvaToFoa((DWORD)pView, AddressOfName[i]));
 				memcpy(pNames, FuncName, len);
+
 				found=true;
 				break;
 			}
@@ -736,13 +737,27 @@ int GetExpTableList(const char* file_name, std::vector<string>& funlist)
 
 	for (UINT i = 0; i < pImg_Export_Dir->NumberOfNames; i++)
 	{
-		DWORD pAddressOfFunctions =RvaToFoa((DWORD)lpFileBase, pImg_Export_Dir->AddressOfFunctions) + i * 4;
-		//DWORD pAddressOfFunctions = RvaToFoa((DWORD)lpFileBase, pImg_Export_Dir->AddressOfFunctions) + i * 4;
-		char* szFunc = (PSTR)ImageRvaToVa(pImg_NT_Header, pImg_DOS_Header, (DWORD)*ppdwNames, 0);
-		char nFunc[32];
-		sprintf_s(nFunc, "0x%08X", pAddressOfFunctions); //"0x%s"
-		std::string FunRVA(nFunc);
-		std::string items = FunRVA + "@" + szFunc + "@" + EXE2DLL::section_name;
+		LPVOID pAddressOfFunction = (LPVOID)((PBYTE)lpFileBase + RvaToFoa((DWORD)lpFileBase, pImg_Export_Dir->AddressOfFunctions) + i * 4);
+		DWORD func_addr;
+		memcpy(&func_addr, pAddressOfFunction, sizeof func_addr);
+		char nFuncFoa[32];
+		sprintf_s(nFuncFoa, "0x%08X", func_addr); 
+		std::string FuncFoa(nFuncFoa);
+
+		LPVOID pAddressOfName = (LPVOID)((PBYTE)lpFileBase + RvaToFoa((DWORD)lpFileBase, pImg_Export_Dir->AddressOfNames)+ i * 4);
+		DWORD name_addr;
+		memcpy(&name_addr, pAddressOfName, sizeof func_addr);
+		char nNameFoa[32];
+		sprintf_s(nNameFoa, "0x%08X", name_addr);
+		std::string NameFoa(nNameFoa);
+
+		char* FuncName = (PSTR)ImageRvaToVa(pImg_NT_Header, pImg_DOS_Header, (DWORD)*ppdwNames, 0);
+		
+		char nFuncRVA[32];
+		sprintf_s(nFuncRVA, "0x%08X", pImg_Export_Dir->AddressOfFunctions + i * 4); //"0x%s"
+		std::string FuncRVA(nFuncRVA);
+
+		std::string items = FuncRVA + "@" + FuncFoa + "@" + NameFoa + "@" + FuncName + "@" + EXE2DLL::section_name;
 		funlist.push_back(items);
 		ppdwNames++;
 	}

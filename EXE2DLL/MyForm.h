@@ -364,9 +364,11 @@ namespace EXE2DLL
 
 		this->listView2->View = View::Details;
 		this->listView2->Columns->Add("NO.", 40, HorizontalAlignment::Center);
-		this->listView2->Columns->Add("FuncRVA.", 150, HorizontalAlignment::Center);
-		this->listView2->Columns->Add("FuncName", 200, HorizontalAlignment::Center);
-		this->listView2->Columns->Add("Section", this->listView1->Width - 200 - 150 - 40 - 5, HorizontalAlignment::Center);
+		this->listView2->Columns->Add("Offset", 100, HorizontalAlignment::Center);
+		this->listView2->Columns->Add("FuncRVA.", 100, HorizontalAlignment::Center);
+		this->listView2->Columns->Add("NameRVA", 100, HorizontalAlignment::Center);
+		this->listView2->Columns->Add("FuncName", 100, HorizontalAlignment::Center);		
+		this->listView2->Columns->Add("Section", this->listView1->Width - 200 - 200 - 40 - 5, HorizontalAlignment::Center);
 	}
 
 	private: System::Void textBox1_DragEnter(System::Object^ sender, System::Windows::Forms::DragEventArgs^ e)
@@ -418,6 +420,8 @@ namespace EXE2DLL
 					lvi->SubItems->Add(str->Split('@')[0]->ToString());
 					lvi->SubItems->Add(str->Split('@')[1]->ToString());
 					lvi->SubItems->Add(str->Split('@')[2]->ToString());
+					lvi->SubItems->Add(str->Split('@')[3]->ToString());
+					lvi->SubItems->Add(str->Split('@')[4]->ToString());
 					listView2->Items->Add(lvi);
 				}
 				this->listView2->EndUpdate();
@@ -481,6 +485,9 @@ namespace EXE2DLL
 					lvi->Text = (i + 1).ToString();
 					lvi->SubItems->Add(str->Split('@')[0]->ToString());
 					lvi->SubItems->Add(str->Split('@')[1]->ToString());
+					lvi->SubItems->Add(str->Split('@')[2]->ToString());
+					lvi->SubItems->Add(str->Split('@')[3]->ToString());
+					lvi->SubItems->Add(str->Split('@')[4]->ToString());
 					listView2->Items->Add(lvi);
 				}
 				this->listView2->EndUpdate();
@@ -499,7 +506,7 @@ namespace EXE2DLL
 		modifyflag = false;
 		frm_modify^ mfForm = gcnew frm_modify();
 		mfForm->Show();
-		frm_modify::MyInstance->textBox2->Enabled = false;
+		//frm_modify::MyInstance->textBox2->Enabled = false;
 		frm_modify::MyInstance->textBox3->Enabled = false;
 		if (EXE2DLL::section_name.empty()==true && EXE2DLL::EXETODLL::FilePath != nullptr )
 		{
@@ -555,14 +562,14 @@ namespace EXE2DLL
 	    modifyflag = true;
 		frm_modify^ mfForm = gcnew frm_modify();
 		mfForm->Show();
-		frm_modify::MyInstance->textBox2->Enabled = false;
+		//frm_modify::MyInstance->textBox2->Enabled = false;
 		frm_modify::MyInstance->textBox3->Enabled = false;
 		if (listView2->SelectedItems->Count > 0)
 		{
-			EXE2DLL::fun_name= marshal_as<std::string>(listView2->SelectedItems[0]->SubItems[2]->Text);
-			frm_modify::MyInstance->textBox1->Text = listView2->SelectedItems[0]->SubItems[2]->Text;
-			frm_modify::MyInstance->textBox2->Text = listView2->SelectedItems[0]->SubItems[1]->Text;
-			frm_modify::MyInstance->textBox3->Text = listView2->SelectedItems[0]->SubItems[3]->Text;
+			EXE2DLL::fun_name= marshal_as<std::string>(listView2->SelectedItems[0]->SubItems[4]->Text);
+			frm_modify::MyInstance->textBox1->Text = listView2->SelectedItems[0]->SubItems[4]->Text;
+			frm_modify::MyInstance->textBox2->Text = listView2->SelectedItems[0]->SubItems[2]->Text;
+			frm_modify::MyInstance->textBox3->Text = listView2->SelectedItems[0]->SubItems[5]->Text;
 		}		
     }
 

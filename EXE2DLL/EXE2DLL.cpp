@@ -82,6 +82,8 @@ void updatecontrol()
 			lvi->Text = (i + 1).ToString();
 			lvi->SubItems->Add(str->Split('@')[0]->ToString());
 			lvi->SubItems->Add(str->Split('@')[1]->ToString());
+			lvi->SubItems->Add(str->Split('@')[2]->ToString());
+			lvi->SubItems->Add(str->Split('@')[3]->ToString());
 			lvi->SubItems->Add(gcnew String(EXE2DLL::section_name.c_str()));
 			EXE2DLL::MyForm::TheInstance->listView2->Items->Add(lvi);
 		}
