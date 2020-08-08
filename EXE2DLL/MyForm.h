@@ -352,14 +352,14 @@ namespace EXE2DLL
 		this->listView1->Columns->Add("RawSize",100, HorizontalAlignment::Center);
 		this->listView1->Columns->Add("VirtualAddr", 100, HorizontalAlignment::Center);
 		this->listView1->Columns->Add("VirtualSize", 100, HorizontalAlignment::Center);
-		this->listView1->Columns->Add("Characteristics", 140, HorizontalAlignment::Center);
+		this->listView1->Columns->Add("Characteristics", 90, HorizontalAlignment::Center);
 
 
 		this->listView2->View = View::Details;
 		this->listView2->Columns->Add("NO.", 40, HorizontalAlignment::Center);
 		this->listView2->Columns->Add("FuncRVA.", 150, HorizontalAlignment::Center);
 		this->listView2->Columns->Add("FuncName", 200, HorizontalAlignment::Center);
-		this->listView2->Columns->Add("Memo", this->listView1->Width - 200 - 150 - 40 - 5, HorizontalAlignment::Center);
+		this->listView2->Columns->Add("Comment", this->listView1->Width - 200 - 150 - 40 - 5, HorizontalAlignment::Center);
 	}
 
 	private: System::Void textBox1_DragEnter(System::Object^ sender, System::Windows::Forms::DragEventArgs^ e)

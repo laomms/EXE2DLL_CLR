@@ -85,7 +85,7 @@ namespace EXE2DLL {
 			this->textBox1->Name = L"textBox1";
 			this->textBox1->Size = System::Drawing::Size(217, 20);
 			this->textBox1->TabIndex = 1;
-			this->textBox1->Text = L"fun1";
+			this->textBox1->Text = L"e.g. fun1";
 			this->toolTip1->SetToolTip(this->textBox1, L"Input the function name.");
 			// 
 			// label2
@@ -103,6 +103,7 @@ namespace EXE2DLL {
 			this->textBox2->Name = L"textBox2";
 			this->textBox2->Size = System::Drawing::Size(217, 20);
 			this->textBox2->TabIndex = 3;
+			this->textBox2->Text = L"e.g.  0x12345";
 			// 
 			// textBox3
 			// 
@@ -110,15 +111,16 @@ namespace EXE2DLL {
 			this->textBox3->Name = L"textBox3";
 			this->textBox3->Size = System::Drawing::Size(217, 20);
 			this->textBox3->TabIndex = 5;
+			this->textBox3->Text = L"e.g.  stdcall";
 			// 
 			// label3
 			// 
 			this->label3->AutoSize = true;
-			this->label3->Location = System::Drawing::Point(4, 70);
+			this->label3->Location = System::Drawing::Point(2, 70);
 			this->label3->Name = L"label3";
-			this->label3->Size = System::Drawing::Size(43, 13);
+			this->label3->Size = System::Drawing::Size(54, 13);
 			this->label3->TabIndex = 4;
-			this->label3->Text = L"MEMO:";
+			this->label3->Text = L"Comment:";
 			// 
 			// button1
 			// 
@@ -156,7 +158,7 @@ namespace EXE2DLL {
 	private: System::Void frm_modify_Load(System::Object^ sender, System::EventArgs^ e) 
 	{
 		this->toolTip1->SetToolTip(this->textBox1, "Input the function name.");
-		this->toolTip1->SetToolTip(this->textBox2, "Input the function Address." + Environment::NewLine + "You can check from IDA." + Environment::NewLine + "Be equal BaseAddr+FuncRVA");
+		this->toolTip1->SetToolTip(this->textBox2, "Input the function Address." + Environment::NewLine + "You can check from IDA." );
 		this->toolTip1->SetToolTip(this->textBox3, "Enter a comment for this function.");
 	}
     private: System::Void button1_Click(System::Object^ sender, System::EventArgs^ e)
@@ -164,6 +166,8 @@ namespace EXE2DLL {
 		if (EXE2DLL::EXETODLL::FilePath == nullptr) return;
 		if (textBox1->Text == "" || textBox2->Text == "") return;
 
+		EXETODLL::AddExtportFuncton(EXE2DLL::EXETODLL::FilePath, ".laomms", textBox1->Text, Convert::ToUInt32(textBox2->Text));
+		EXETODLL::ModifyExtportFuncton(EXE2DLL::EXETODLL::FilePath, "MyFunc2", "NewFuncs", Convert::ToUInt32(textBox2->Text));
     }
 };
 }

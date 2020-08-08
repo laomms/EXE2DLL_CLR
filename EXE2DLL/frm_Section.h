@@ -1,5 +1,6 @@
 #pragma once
 #include "EXE2DLL.h"
+#include "PE_INFO.h"
 
 #ifdef _WIN64
 typedef unsigned __int64 size_t;
@@ -174,7 +175,21 @@ namespace EXE2DLL {
 		if (textBox1->Text == "" || textBox2->Text == "" || textBox3->Text == "") return;		
 		size_t^ % RvaRawData=gcnew size_t;
 		EXETODLL::AddSection(EXE2DLL::EXETODLL::FilePath,textBox1->Text, Convert::ToUInt32(textBox2->Text), textBox3->Text, RvaRawData);
-		this->Close();
+		if (RvaRawData != (UInt32)0)
+		{
+			//ListViewItem^ lvi = gcnew ListViewItem();
+			//lvi->Text = textBox1->Text;
+			//lvi->SubItems->Add(textBox2->Text);
+			//lvi->SubItems->Add(textBox3->Text);
+		    //MyForm::TheInstance::listView1->Items->Add(lvi);
+			PElist.clear();
+			DataDirectory.clear();
+			Sectionlist.clear();
+			funlist.clear();
+			GetPeInfo((const char*)(void*)Marshal::StringToHGlobalAnsi(EXE2DLL::EXETODLL::FilePath), PElist, DataDirectory, Sectionlist);
+			this->Close();
+		}
+	
 	}
     private: System::Void  frm_section_Load(System::Object^ sender, System::EventArgs^ e) 
     {
