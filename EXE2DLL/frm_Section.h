@@ -1,8 +1,11 @@
 #pragma once
-#include "EXE2DLL.h"
+
 #include "PE_INFO.h"
 #include <string>
 #include <msclr\marshal_cppstd.h>
+
+#include "EXE2DLL.h"
+//#include "MyForm.h"
 
 #ifdef _WIN64
 typedef unsigned __int64 size_t;
@@ -181,16 +184,7 @@ namespace EXE2DLL {
 		if (RvaRawData != (UInt32)0)
 		{
 			EXE2DLL::section_name = marshal_as<std::string>(textBox1->Text);
-			//ListViewItem^ lvi = gcnew ListViewItem();
-			//lvi->Text = textBox1->Text;
-			//lvi->SubItems->Add(textBox2->Text);
-			//lvi->SubItems->Add(textBox3->Text);
-		    //MyForm::TheInstance::listView1->Items->Add(lvi);
-			PElist.clear();
-			DataDirectory.clear();
-			Sectionlist.clear();
-			funlist.clear();
-			GetPeInfo((const char*)(void*)Marshal::StringToHGlobalAnsi(EXE2DLL::EXETODLL::FilePath), PElist, DataDirectory, Sectionlist);
+			updatecontrol();
 			this->Close();
 		}
 	

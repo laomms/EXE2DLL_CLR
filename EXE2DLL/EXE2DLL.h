@@ -1,11 +1,16 @@
 #pragma once
+
 #include "add_export_function.h"
+//#include "MyForm.h"
 
 #ifdef _WIN64
 typedef unsigned __int64 size_t;
 #else
 typedef unsigned int size_t;
 #endif 
+
+
+void updatecontrol();
 
 namespace EXE2DLL
 {
@@ -27,6 +32,7 @@ namespace EXE2DLL
 	static std::vector<std::string>  funlist;
 	static bool modifyflag;
 	static std::string section_name;
+	static std::string fun_name;
 
 	public  ref class EXETODLL
 	{

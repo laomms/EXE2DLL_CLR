@@ -38,7 +38,7 @@ namespace EXE2DLL
 	/// </summary>
 
 
-    public ref class MyForm : public System::Windows::Forms::Form
+	public ref class MyForm : public System::Windows::Forms::Form
 	{
 	
 	
@@ -80,9 +80,12 @@ namespace EXE2DLL
 	private: System::Windows::Forms::TabControl^ tabControl1;
 	private: System::Windows::Forms::TabPage^ tabPage1;
 	private: System::Windows::Forms::TabPage^ tabPage2;
-	private: System::Windows::Forms::ListView^ listView1;
+	public: System::Windows::Forms::ListView^ listView1;
+	private:
+	public: System::Windows::Forms::ListView^ listView2;
 
-	private: System::Windows::Forms::ListView^ listView2;
+
+
 	private: System::Windows::Forms::ContextMenuStrip^ contextMenuStrip2;
 	private: System::Windows::Forms::ToolStripMenuItem^ AddSectionMenu;
 	private: System::Windows::Forms::ToolStripMenuItem^ AddExporFuncMenuI;
@@ -256,7 +259,7 @@ namespace EXE2DLL
 			this->listView1->Size = System::Drawing::Size(589, 178);
 			this->listView1->TabIndex = 4;
 			this->listView1->UseCompatibleStateImageBehavior = false;
-			this->listView1->SelectedIndexChanged += gcnew System::EventHandler(this, &MyForm::listView1_SelectedIndexChanged);
+
 			// 
 			// tabPage2
 			// 
@@ -280,7 +283,7 @@ namespace EXE2DLL
 			this->listView2->Size = System::Drawing::Size(589, 177);
 			this->listView2->TabIndex = 3;
 			this->listView2->UseCompatibleStateImageBehavior = false;
-			this->listView2->SelectedIndexChanged += gcnew System::EventHandler(this, &MyForm::listView2_SelectedIndexChanged);
+	
 			// 
 			// contextMenuStrip2
 			// 
@@ -317,6 +320,7 @@ namespace EXE2DLL
 			this->DeletExoprtFuncMenu->Name = L"DeletExoprtFuncMenu";
 			this->DeletExoprtFuncMenu->Size = System::Drawing::Size(172, 22);
 			this->DeletExoprtFuncMenu->Text = L"DeletExoprtFunc";
+			this->DeletExoprtFuncMenu->Click += gcnew System::EventHandler(this, &MyForm::DeletExoprtFuncMenu_Click);
 			// 
 			// MyForm
 			// 
@@ -495,13 +499,13 @@ namespace EXE2DLL
 		modifyflag = false;
 		frm_modify^ mfForm = gcnew frm_modify();
 		mfForm->Show();
-		if (EXE2DLL::section_name == "")
+		if (EXE2DLL::section_name.empty()==true && EXE2DLL::EXETODLL::FilePath != nullptr )
 		{
 			HANDLE hFile = CreateFileA((const char*)(void*)Marshal::StringToHGlobalAnsi(EXE2DLL::EXETODLL::FilePath), GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-			//获取文件大小
+			//鑾峰彇鏂囦欢澶у皬
 			DWORD dwFileSize = GetFileSize(hFile, NULL);
 			CHAR* pFileBuf = new CHAR[dwFileSize];
-			//将文件读取到内存
+			//灏嗘枃浠惰鍙栧埌鍐呭瓨
 			DWORD ReadSize = 0;
 			ReadFile(hFile, pFileBuf, dwFileSize, &ReadSize, NULL);
 			PIMAGE_SECTION_HEADER last_section=get_last_section((PBYTE)pFileBuf, dwFileSize, true);			
@@ -551,21 +555,19 @@ namespace EXE2DLL
 		mfForm->Show();
 		if (listView2->SelectedItems->Count > 0)
 		{
+			EXE2DLL::fun_name= marshal_as<std::string>(listView2->SelectedItems[0]->SubItems[2]->Text);
 			frm_modify::MyInstance->textBox1->Text = listView2->SelectedItems[0]->SubItems[2]->Text;
 			frm_modify::MyInstance->textBox2->Text = listView2->SelectedItems[0]->SubItems[1]->Text;
 			frm_modify::MyInstance->textBox3->Text = listView2->SelectedItems[0]->SubItems[3]->Text;
-		}
+		}		
+    }
 
-		
-    }
-    private: System::Void listView1_Click(System::Object^ sender, System::EventArgs^ e) 
+    private: System::Void DeletExoprtFuncMenu_Click(System::Object^ sender, System::EventArgs^ e) 
 	{
-		
+		if (listView2->SelectedItems->Count > 0)
+		{
+			
+		}
     }
-    private: System::Void listView2_SelectedIndexChanged(System::Object^ sender, System::EventArgs^ e)
-	{
-    }
-private: System::Void listView1_SelectedIndexChanged(System::Object^ sender, System::EventArgs^ e) {
-}
 };
 }
