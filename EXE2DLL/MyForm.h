@@ -259,7 +259,6 @@ namespace EXE2DLL
 			this->listView1->Size = System::Drawing::Size(589, 178);
 			this->listView1->TabIndex = 4;
 			this->listView1->UseCompatibleStateImageBehavior = false;
-
 			// 
 			// tabPage2
 			// 
@@ -320,6 +319,7 @@ namespace EXE2DLL
 			this->DeletExoprtFuncMenu->Name = L"DeletExoprtFuncMenu";
 			this->DeletExoprtFuncMenu->Size = System::Drawing::Size(172, 22);
 			this->DeletExoprtFuncMenu->Text = L"DeletExoprtFunc";
+			this->DeletExoprtFuncMenu->Visible = false;
 			this->DeletExoprtFuncMenu->Click += gcnew System::EventHandler(this, &MyForm::DeletExoprtFuncMenu_Click);
 			// 
 			// MyForm

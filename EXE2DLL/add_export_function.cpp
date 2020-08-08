@@ -261,8 +261,6 @@ DWORD get_hdrs_size(IN const BYTE* pe_buffer)
 	return hdrs_size;
 }
 
-
-
 PIMAGE_SECTION_HEADER get_last_section(IN const PBYTE pe_buffer, IN size_t pe_size, IN bool is_raw)
 {
 	SIZE_T module_end = get_hdrs_size(pe_buffer);
@@ -532,11 +530,11 @@ BOOL modify_export_table(const char* file_name, const char* old_name, const char
 	char* FuncName = new char[len]();
 	if (strlen(new_name) > len)
 	{
-		::memcpy(FuncName, new_name, len);
+		len = strlen(new_name);
+		::memcpy(FuncName, new_name, len+1);
 	}
 	else
-	{
-		len = strlen(new_name);
+	{		
 		::memcpy(FuncName, new_name, len);
 	}	
 	DWORD VirtualSize = 0;
