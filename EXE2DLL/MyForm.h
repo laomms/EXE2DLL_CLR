@@ -334,7 +334,7 @@ namespace EXE2DLL
 			this->Icon = (cli::safe_cast<System::Drawing::Icon^>(resources->GetObject(L"$this.Icon")));
 			this->Name = L"MyForm";
 			this->StartPosition = System::Windows::Forms::FormStartPosition::CenterScreen;
-			this->Text = L"EXE2DLL ";
+			this->Text = L"EXE2DLL V1.0 by laomms";
 			this->Load += gcnew System::EventHandler(this, &MyForm::MyForm_Load);
 			this->contextMenuStrip1->ResumeLayout(false);
 			this->groupBox1->ResumeLayout(false);
@@ -546,6 +546,7 @@ namespace EXE2DLL
     }
     private: System::Void button2_Click(System::Object^ sender, System::EventArgs^ e) 
     {
+		if (EXE2DLL::EXETODLL::FilePath == nullptr) return;
 		Stream^ myStream;
 		SaveFileDialog^ saveFileDialog1 = gcnew SaveFileDialog;
 		saveFileDialog1->Filter = "dll files (*.dll)|*.dll|All files (*.*)|*.*";

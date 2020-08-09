@@ -54,15 +54,6 @@ BYTE* get_nt_hdrs(IN const BYTE* pe_buffer)
 }
 
 
-/*USAGE: addscn.exe <path to PE file> <section name> <VirtualSize> <Characteristics>
-
-VirtualSize can be in decimal(ex : 5021) or in hex(ex. 0x12c)
-Characteristics can either be a hex DWORD like this : 0xC0000040
-or the strings "text", "data" or "rdata" which mean :
-
-text:  0x60000020 : IMAGE_SCN_CNT_CODE | IMAGE_SCN_MEM_EXECUTE | IMAGE_SCN_MEM_READ
-data : 0xC0000040 : IMAGE_SCN_CNT_INITIALIZED_DATA | IMAGE_SCN_MEM_READ | IMAGE_SCN_MEM_WRITE
-rdata : 0x40000040 : IMAGE_SCN_CNT_INITIALIZED_DATA | IMAGE_SCN_MEM_READ*/
 size_t add_section(const char* path, const char* section_name, DWORD VirtualSize, const char* str_Characteristics, size_t RvaRawData)//target_file.exe .mySection 0x231 rdata 
 {
 	DWORD SectionRVA = 0;
@@ -666,6 +657,13 @@ int GetExpTableList(const char* file_name, std::vector<string>& funlist)
 	lpFileBase = MapViewOfFile(hFileMapping, FILE_MAP_READ, 0, 0, 0);
 	if (lpFileBase == 0)
 	{
+		CloseHandle(hFileMapping);
+		CloseHandle(hFile);
+		return 3;
+	}
+
+	BYTE* payload_nt_hdr = get_nt_hdrs((BYTE*)lpFileBase);
+	if (payload_nt_hdr == NULL) {		
 		CloseHandle(hFileMapping);
 		CloseHandle(hFile);
 		return 3;
