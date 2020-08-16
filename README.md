@@ -2,5 +2,5 @@
 
 
 #Add Export Function to PE  
-#Convert Exe To Dll (credit by hasherezade(https://github.com/hasherezade/exe_to_dll))
+#Convert Exe To Dll  (credit by hasherezade(https://github.com/hasherezade/exe_to_dll))
 
