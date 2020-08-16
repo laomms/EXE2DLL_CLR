@@ -334,7 +334,7 @@ namespace EXE2DLL
 			this->Icon = (cli::safe_cast<System::Drawing::Icon^>(resources->GetObject(L"$this.Icon")));
 			this->Name = L"MyForm";
 			this->StartPosition = System::Windows::Forms::FormStartPosition::CenterScreen;
-			this->Text = L"EXE2DLL V1.0 by laomms";
+			this->Text = L"EXE2DLL V1.0";
 			this->Load += gcnew System::EventHandler(this, &MyForm::MyForm_Load);
 			this->contextMenuStrip1->ResumeLayout(false);
 			this->groupBox1->ResumeLayout(false);
