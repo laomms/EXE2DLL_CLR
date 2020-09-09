@@ -47,6 +47,7 @@ namespace EXE2DLL {
 	private: System::Windows::Forms::Label^ label3;
 	private: System::Windows::Forms::Button^ button1;
 	private: System::Windows::Forms::ToolTip^ toolTip1;
+	private: System::Windows::Forms::Label^ label4;
 	private: System::ComponentModel::IContainer^ components;
 
 	private:
@@ -72,6 +73,7 @@ namespace EXE2DLL {
 			this->label3 = (gcnew System::Windows::Forms::Label());
 			this->button1 = (gcnew System::Windows::Forms::Button());
 			this->toolTip1 = (gcnew System::Windows::Forms::ToolTip(this->components));
+			this->label4 = (gcnew System::Windows::Forms::Label());
 			this->SuspendLayout();
 			// 
 			// label1
@@ -136,11 +138,21 @@ namespace EXE2DLL {
 			this->button1->UseVisualStyleBackColor = true;
 			this->button1->Click += gcnew System::EventHandler(this, &frm_modify::button1_Click);
 			// 
+			// label4
+			// 
+			this->label4->AutoSize = true;
+			this->label4->Location = System::Drawing::Point(17, 143);
+			this->label4->Name = L"label4";
+			this->label4->Size = System::Drawing::Size(260, 13);
+			this->label4->TabIndex = 7;
+			this->label4->Text = L"Note: Only stdcall and cdecl  can export func symbols";
+			// 
 			// frm_modify
 			// 
 			this->AutoScaleDimensions = System::Drawing::SizeF(6, 13);
 			this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
-			this->ClientSize = System::Drawing::Size(295, 140);
+			this->ClientSize = System::Drawing::Size(295, 168);
+			this->Controls->Add(this->label4);
 			this->Controls->Add(this->button1);
 			this->Controls->Add(this->textBox3);
 			this->Controls->Add(this->label3);
