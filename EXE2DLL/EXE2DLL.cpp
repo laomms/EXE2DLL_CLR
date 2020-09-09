@@ -28,9 +28,16 @@ void updatecontrol()
 	funlist.clear();
 	EXE2DLL::section_name = "";
 
+	try
+	{
+		EXE2DLL::MyForm::TheInstance->listView1->Items->Clear();
+		EXE2DLL::MyForm::TheInstance->listView2->Items->Clear();
+	}
+	catch(exception e)
+	{
 
-	EXE2DLL::MyForm::TheInstance->listView1->Items->Clear();
-	EXE2DLL::MyForm::TheInstance->listView2->Items->Clear();
+	}
+	
 
 	if (EXE2DLL::section_name.empty() == true && EXE2DLL::EXETODLL::FilePath != nullptr)
 	{

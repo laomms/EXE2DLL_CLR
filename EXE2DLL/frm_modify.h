@@ -107,7 +107,7 @@ namespace EXE2DLL {
 			this->textBox2->Name = L"textBox2";
 			this->textBox2->Size = System::Drawing::Size(217, 20);
 			this->textBox2->TabIndex = 3;
-			this->textBox2->Text = L"e.g.  0x12345";
+			this->textBox2->Text = L"e.g.  0x00012345 (rva-base)";
 			// 
 			// textBox3
 			// 
@@ -169,7 +169,7 @@ namespace EXE2DLL {
     {
 		if (EXE2DLL::EXETODLL::FilePath == nullptr) return;
 		if (textBox1->Text == "" || textBox2->Text == "") return;
-		if (modifyflag = true)
+		if (modifyflag == true)
 		{
 			int hexNumber;
 			sscanf((marshal_as<std::string>(textBox2->Text)).c_str(), "%x", &hexNumber);
