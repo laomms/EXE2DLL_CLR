@@ -746,13 +746,13 @@ BOOL delete_export_table(const char* file_name, const char* func_name, size_t Fu
 
 					//移动pAddressOfFunctions
 					LPVOID pAddressOfFunctions = (LPVOID)(pView + RvaToFoa((DWORD)pView, pExportDirectory->AddressOfFunctions) + i * 4);
-					string strFuncAddr = split(func_list[i+1], "@")[1];
+					string strFuncAddr = split(func_list[i+1], "#")[1];
 					unsigned long funcrva = strtoul(strFuncAddr.c_str(), 0, 16);
 					memcpy(pAddressOfFunctions, &funcrva, 4);
 
 					//移动funcname
 					LPVOID pNames = (LPVOID)(pView + RvaToFoa((DWORD)pView, AddressOfName[i]));
-					string strFuncName = split(func_list[i + 1], "@")[3];
+					string strFuncName = split(func_list[i + 1], "#")[3];
 					int len = strFuncName.size() + 1;					
 					char* cstr=new char[len];
 					std::fill_n(cstr, len, 0);
@@ -772,11 +772,11 @@ BOOL delete_export_table(const char* file_name, const char* func_name, size_t Fu
 				if (i != pExportDirectory->NumberOfNames-1 )
 				{
 					LPVOID pAddressOfFunctions = (LPVOID)(pView + RvaToFoa((DWORD)pView, pExportDirectory->AddressOfFunctions) + i * 4);
-					string strFuncAddr = split(func_list[i + 1], "@")[1];
+					string strFuncAddr = split(func_list[i + 1], "#")[1];
 					unsigned long funcrva = strtoul(strFuncAddr.c_str(), 0, 16);
 					memcpy(pAddressOfFunctions, &funcrva, 4);
 					LPVOID pNames = (LPVOID)(pView + RvaToFoa((DWORD)pView, AddressOfName[i]));
-					string strFuncName = split(func_list[i + 1], "@")[3];
+					string strFuncName = split(func_list[i + 1], "#")[3];
 					int len = strFuncName.size() + 1;
 					char* cstr = new char[len];
 					std::fill_n(cstr, len, 0);
@@ -939,7 +939,7 @@ int GetExpTableList(const char* file_name, std::vector<string>& funlist)
 		sprintf_s(nFuncRVA, "0x%08X", pImg_Export_Dir->AddressOfFunctions + i * 4); //"0x%s"
 		std::string FuncRVA(nFuncRVA);
 
-		std::string items = FuncRVA + "@" + FuncFoa + "@" + NameFoa + "@" + FuncName + "@" + EXE2DLL::section_name;
+		std::string items = FuncRVA + "#" + FuncFoa + "#" + NameFoa + "#" + FuncName + "#" + EXE2DLL::section_name;
 		funlist.push_back(items);
 		ppdwNames++;
 	}

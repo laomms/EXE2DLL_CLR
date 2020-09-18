@@ -398,12 +398,12 @@ namespace EXE2DLL
 					String^ str = gcnew String(Sectionlist[i].c_str());
 					ListViewItem^ lvi = gcnew ListViewItem();
 					lvi->Text = (i + 1).ToString();
-					lvi->SubItems->Add(str->Split('@')[0]->ToString());
-					lvi->SubItems->Add(str->Split('@')[1]->ToString());
-					lvi->SubItems->Add(str->Split('@')[2]->ToString());
-					lvi->SubItems->Add(str->Split('@')[3]->ToString());
-					lvi->SubItems->Add(str->Split('@')[4]->ToString());
-					lvi->SubItems->Add(str->Split('@')[5]->ToString());
+					lvi->SubItems->Add(str->Split('#')[0]->ToString());
+					lvi->SubItems->Add(str->Split('#')[1]->ToString());
+					lvi->SubItems->Add(str->Split('#')[2]->ToString());
+					lvi->SubItems->Add(str->Split('#')[3]->ToString());
+					lvi->SubItems->Add(str->Split('#')[4]->ToString());
+					lvi->SubItems->Add(str->Split('#')[5]->ToString());
 					listView1->Items->Add(lvi);
 				}
 				this->listView1->EndUpdate();
@@ -417,11 +417,11 @@ namespace EXE2DLL
 					String^ str = gcnew String(funlist[i].c_str());
 					ListViewItem^ lvi = gcnew ListViewItem();
 					lvi->Text = (i+1).ToString();
-					lvi->SubItems->Add(str->Split('@')[0]->ToString());
-					lvi->SubItems->Add(str->Split('@')[1]->ToString());
-					lvi->SubItems->Add(str->Split('@')[2]->ToString());
-					lvi->SubItems->Add(str->Split('@')[3]->ToString());
-					lvi->SubItems->Add(str->Split('@')[4]->ToString());
+					lvi->SubItems->Add(str->Split('#')[0]->ToString());
+					lvi->SubItems->Add(str->Split('#')[1]->ToString());
+					lvi->SubItems->Add(str->Split('#')[2]->ToString());
+					lvi->SubItems->Add(str->Split('#')[3]->ToString());
+					lvi->SubItems->Add(str->Split('#')[4]->ToString());
 					listView2->Items->Add(lvi);
 				}
 				this->listView2->EndUpdate();
@@ -463,12 +463,12 @@ namespace EXE2DLL
 					String^ str = gcnew String(Sectionlist[i].c_str());
 					ListViewItem^ lvi = gcnew ListViewItem();
 					lvi->Text = (i + 1).ToString();
-					lvi->SubItems->Add(str->Split('@')[0]->ToString());
-					lvi->SubItems->Add(str->Split('@')[1]->ToString());
-					lvi->SubItems->Add(str->Split('@')[2]->ToString());
-					lvi->SubItems->Add(str->Split('@')[3]->ToString());
-					lvi->SubItems->Add(str->Split('@')[4]->ToString());
-					lvi->SubItems->Add(str->Split('@')[5]->ToString());
+					lvi->SubItems->Add(str->Split('#')[0]->ToString());
+					lvi->SubItems->Add(str->Split('#')[1]->ToString());
+					lvi->SubItems->Add(str->Split('#')[2]->ToString());
+					lvi->SubItems->Add(str->Split('#')[3]->ToString());
+					lvi->SubItems->Add(str->Split('#')[4]->ToString());
+					lvi->SubItems->Add(str->Split('#')[5]->ToString());
 					listView1->Items->Add(lvi);
 				}
 				this->listView1->EndUpdate();
@@ -483,11 +483,11 @@ namespace EXE2DLL
 					String^ str = gcnew String(funlist[i].c_str());
 					ListViewItem^ lvi = gcnew ListViewItem();
 					lvi->Text = (i + 1).ToString();
-					lvi->SubItems->Add(str->Split('@')[0]->ToString());
-					lvi->SubItems->Add(str->Split('@')[1]->ToString());
-					lvi->SubItems->Add(str->Split('@')[2]->ToString());
-					lvi->SubItems->Add(str->Split('@')[3]->ToString());
-					lvi->SubItems->Add(str->Split('@')[4]->ToString());
+					lvi->SubItems->Add(str->Split('#')[0]->ToString());
+					lvi->SubItems->Add(str->Split('#')[1]->ToString());
+					lvi->SubItems->Add(str->Split('#')[2]->ToString());
+					lvi->SubItems->Add(str->Split('#')[3]->ToString());
+					lvi->SubItems->Add(str->Split('#')[4]->ToString());
 					listView2->Items->Add(lvi);
 				}
 				this->listView2->EndUpdate();

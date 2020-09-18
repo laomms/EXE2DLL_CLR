@@ -104,7 +104,7 @@ int GetPeInfo(const char* file_name, std::vector<std::string>& PElist, std::vect
 		std::string sdata(data);
 		sprintf_s(size, "%08X", pDataDirectory[i].Size);
 		std::string ssize(size);
-		std::string items = sdata + "@" + ssize;
+		std::string items = sdata + "#" + ssize;
 		DataDirectory.push_back(items);
 		memset(data, 0, 32);
 	}
@@ -141,7 +141,7 @@ int GetPeInfo(const char* file_name, std::vector<std::string>& PElist, std::vect
 		std::string srawsize(rawsize);
 		sprintf_s(feature, "%08X", pSectionHeader->Characteristics);	
 		std::string sfeature(feature);
-		std::string items = sname + "@" + saddress + "@" + ssize + "@" + srawdata + "@" + srawsize + "@" + sfeature;
+		std::string items = sname + "#" + saddress + "#" + ssize + "#" + srawdata + "#" + srawsize + "#" + sfeature;
 		Sectionlist.push_back(items);
 	}
 	CloseHandle(hFile);

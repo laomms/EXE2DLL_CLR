@@ -91,7 +91,7 @@ namespace EXE2DLL {
 			this->textBox1->Name = L"textBox1";
 			this->textBox1->Size = System::Drawing::Size(217, 20);
 			this->textBox1->TabIndex = 1;
-			this->textBox1->Text = L"e.g. func1  e.g. @func1@12 ";
+			this->textBox1->Text = L"e.g. func1  e.g. #func1#12 ";
 			this->toolTip1->SetToolTip(this->textBox1, L"Input the function name.");
 			// 
 			// label2
@@ -145,7 +145,7 @@ namespace EXE2DLL {
 			this->label4->Name = L"label4";
 			this->label4->Size = System::Drawing::Size(251, 13);
 			this->label4->TabIndex = 7;
-			this->label4->Text = L"Note: For fastcall name should be @name@agrnum";
+			this->label4->Text = L"Note: For fastcall name should be #name#agrnum";
 			// 
 			// frm_modify
 			// 
