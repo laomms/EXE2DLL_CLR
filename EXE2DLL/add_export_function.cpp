@@ -662,7 +662,6 @@ BOOL modify_export_table(const char* file_name, const char* old_name, const char
 				DWORD newPtr = (DWORD)*pOldAddressOfNames + strFuncName.length() + 1;
 				memcpy(pAddressOfNames, (char*)&newPtr, 4);
 			}
-
 		}
 		NewAddSize = pExportDirectory->Name - RvaSection + strlen(new_name)- strlen(old_name) - 1;
 		if (found==false) 
