@@ -644,8 +644,7 @@ BOOL modify_export_table(const char* file_name, const char* old_name, const char
 						LPVOID pAddressOfNames = (LPVOID)(pView + RvaToFoa((DWORD)pView, pExportDirectory->AddressOfNames) + (i + 1) * 4);
 						DWORD newPtr = (DWORD)*pOldAddressOfNames + len;
 						memcpy(pAddressOfNames, (char*)&newPtr, 4);
-					}
-					
+					}					
 				}
 			}
 			else
