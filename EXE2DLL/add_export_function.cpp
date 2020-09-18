@@ -835,8 +835,7 @@ BOOL delete_export_table(const char* file_name, const char* func_name, size_t Fu
 		{
 			wcout << L"Can not finding this functin name." << endl;
 		}
-	}
-	
+	}	
 	pOptionalHeader->DataDirectory[0].Size = NewAddSize;
 	CloseHandle(hFile);
 	UnmapViewOfFile((PVOID)pView);
