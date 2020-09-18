@@ -534,18 +534,12 @@ BOOL add_export_table(const char* file_name, const char* section_name, const cha
 
 BOOL modify_export_table(const char* file_name, const char* old_name, const char* new_name, size_t FuncRva)
 {
-	int len = strlen(old_name);
-	char* FuncName = new char[len]();
-	if (strlen(new_name) > len)
-	{
-		len = strlen(new_name);
-		::memcpy(FuncName, new_name, len+1);
-		//add_export_table(file_name,  old_name, new_name,  FuncRva);
-	}
-	else
-	{		
-		::memcpy(FuncName, new_name, len);
-	}	
+	DWORD NewAddSize = 0;
+	size_t  RvaSection;
+	static std::vector<std::string>  func_list = EXE2DLL::funlist;
+	GetExpTableList(file_name, func_list);
+	int len = strlen(new_name);
+	
 	DWORD VirtualSize = 0;
 	HANDLE hFile = CreateFileA(file_name, GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 	if (hFile == INVALID_HANDLE_VALUE) {
@@ -611,12 +605,8 @@ BOOL modify_export_table(const char* file_name, const char* old_name, const char
 		PIMAGE_EXPORT_DIRECTORY pExportDirectory;
 		for (int i = 0; i < ntHeaders->FileHeader.NumberOfSections; i++) {
 			if (pSecHeader[i].Misc.VirtualSize == 0)break;
-			//pExportDirectory = (PIMAGE_EXPORT_DIRECTORY)((DWORD)pView + pSecHeader[i].SizeOfRawData);
-			//if (pExportDirectory->Base = 1)
-			//{
-			//	//break;
-			//}
 			DWORD dwSectionBeginRva = pSecHeader[i].VirtualAddress;
+			RvaSection = pSecHeader[i].VirtualAddress;
 			DWORD dwSectionEndRva = pSecHeader[i].VirtualAddress + pSecHeader[i].SizeOfRawData;
 			if (dwRva >= dwSectionBeginRva && dwRva <= dwSectionEndRva) {
 				pExportDirectory = (PIMAGE_EXPORT_DIRECTORY)((DWORD)pView + pSecHeader[i].PointerToRawData);
@@ -626,24 +616,62 @@ BOOL modify_export_table(const char* file_name, const char* old_name, const char
 		BOOL found = false;
 		DWORD* AddressOfName = (DWORD*)(pView + RvaToFoa((DWORD)pView, pExportDirectory->AddressOfNames));
 		//是否有该函数名
+		int func_positon = (int)pExportDirectory->NumberOfNames;
 		for (int i = 0; i < (int)pExportDirectory->NumberOfNames; i++)
 		{
-			char* func_names = (char*)(pView + RvaToFoa((DWORD)pView, AddressOfName[i]));
-			if (strcmp(old_name, func_names) == 0)
+			if (i < func_positon)
 			{
-				LPVOID pAddressOfFunctions = (LPVOID)(pView + RvaToFoa((DWORD)pView, pExportDirectory->AddressOfFunctions)+ i * 4);
-				memcpy(pAddressOfFunctions, (char*)(DWORD)&FuncRva,  4);
-				LPVOID pNames = (LPVOID)(pView + RvaToFoa((DWORD)pView, AddressOfName[i]));
-				memcpy(pNames, FuncName, len);
-				found=true;
-				break;
+				char* func_names = (char*)(pView + RvaToFoa((DWORD)pView, AddressOfName[i]));
+				if (strcmp(old_name, func_names) == 0)
+				{
+					found = true;
+					//修改pAddressOfFunctions
+					DWORD* pAddressOfFunctions = (DWORD*)(pView + RvaToFoa((DWORD)pView, pExportDirectory->AddressOfFunctions) + i * 4);
+					if((DWORD)*pAddressOfFunctions != FuncRva)
+						memcpy(pAddressOfFunctions, (char*)(DWORD)&FuncRva, 4);
+
+					//移动funcname
+					LPVOID pNames = (LPVOID)(pView + RvaToFoa((DWORD)pView, AddressOfName[i]));
+					char* strName = (char*)pNames;
+					if (strcmp(strName, new_name) != 0)
+					{
+						func_positon = i;
+						int len = strlen(new_name) + 1;
+						char* FuncName = new char[len];
+						memcpy(pNames, new_name, len );
+						//赋值下一个AddressOfNames
+						DWORD* pOldAddressOfNames = (DWORD*)(pView + RvaToFoa((DWORD)pView, pExportDirectory->AddressOfNames) + i * 4);
+						LPVOID pAddressOfNames = (LPVOID)(pView + RvaToFoa((DWORD)pView, pExportDirectory->AddressOfNames) + (i + 1) * 4);
+						DWORD newPtr = (DWORD)*pOldAddressOfNames + len;
+						memcpy(pAddressOfNames, (char*)&newPtr, 4);
+					}
+					
+				}
 			}
+			else
+			{
+				LPVOID pNames = (LPVOID)(pView + RvaToFoa((DWORD)pView, AddressOfName[i]));
+				string strFuncName = split(func_list[i], "#")[3];
+				int len = strFuncName.size() + 1;
+				char* cstr = new char[len];
+				std::fill_n(cstr, len, 0);
+				strFuncName.copy(cstr, len);
+				strcpy(cstr, strFuncName.c_str());
+				memcpy(pNames, cstr, len);
+				DWORD* pOldAddressOfNames = (DWORD*)(pView + RvaToFoa((DWORD)pView, pExportDirectory->AddressOfNames) + i * 4);
+				LPVOID pAddressOfNames = (LPVOID)(pView + RvaToFoa((DWORD)pView, pExportDirectory->AddressOfNames) + (i + 1) * 4);
+				DWORD newPtr = (DWORD)*pOldAddressOfNames + strFuncName.length() + 1;
+				memcpy(pAddressOfNames, (char*)&newPtr, 4);
+			}
+
 		}
+		NewAddSize = pExportDirectory->Name - RvaSection + strlen(new_name)- strlen(old_name) - 1;
 		if (found==false) 
 		{
 			wcout << L"Can not finding this functin name." << endl;
 		}
 	}	
+	pOptionalHeader->DataDirectory[0].Size = NewAddSize;
 	CloseHandle(hFile);
 	UnmapViewOfFile((PVOID)pView);
 	CloseHandle(hFileMapping);
@@ -700,7 +728,6 @@ BOOL delete_export_table(const char* file_name, const char* func_name, size_t Fu
 		return 0;
 	}
 
-	char* FuncAddrList = new char[4]();
 	WORD numberOfSections = ntHeaders->FileHeader.NumberOfSections;
 	DWORD fileAlignment = ntHeaders->OptionalHeader.FileAlignment;
 	PIMAGE_FILE_HEADER fileHeader = &(ntHeaders->FileHeader);
