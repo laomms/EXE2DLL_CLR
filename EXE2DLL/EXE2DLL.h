@@ -51,6 +51,10 @@ namespace EXE2DLL
         {
             return modify_export_table((const char*)(void*)Marshal::StringToHGlobalAnsi(file_name), (const char*)(void*)Marshal::StringToHGlobalAnsi(old_func_name), (const char*)(void*)Marshal::StringToHGlobalAnsi(FuncName), FuncRva);
         }
+		static  BOOL DeleteExtportFuncton(String^ file_name,  String^ FuncName, size_t FuncRva)
+		{
+			return delete_export_table((const char*)(void*)Marshal::StringToHGlobalAnsi(file_name), (const char*)(void*)Marshal::StringToHGlobalAnsi(FuncName), FuncRva);
+		}
 	};
 
 };

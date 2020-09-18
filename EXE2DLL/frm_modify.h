@@ -81,9 +81,9 @@ namespace EXE2DLL {
 			this->label1->AutoSize = true;
 			this->label1->Location = System::Drawing::Point(4, 18);
 			this->label1->Name = L"label1";
-			this->label1->Size = System::Drawing::Size(56, 13);
+			this->label1->Size = System::Drawing::Size(62, 13);
 			this->label1->TabIndex = 0;
-			this->label1->Text = L"FunName:";
+			this->label1->Text = L"FuncName:";
 			// 
 			// textBox1
 			// 
@@ -91,7 +91,7 @@ namespace EXE2DLL {
 			this->textBox1->Name = L"textBox1";
 			this->textBox1->Size = System::Drawing::Size(217, 20);
 			this->textBox1->TabIndex = 1;
-			this->textBox1->Text = L"e.g. fun1";
+			this->textBox1->Text = L"e.g. func1  e.g. @func1@12 ";
 			this->toolTip1->SetToolTip(this->textBox1, L"Input the function name.");
 			// 
 			// label2
@@ -99,9 +99,9 @@ namespace EXE2DLL {
 			this->label2->AutoSize = true;
 			this->label2->Location = System::Drawing::Point(4, 44);
 			this->label2->Name = L"label2";
-			this->label2->Size = System::Drawing::Size(50, 13);
+			this->label2->Size = System::Drawing::Size(56, 13);
 			this->label2->TabIndex = 2;
-			this->label2->Text = L"FunAddr:";
+			this->label2->Text = L"FuncAddr:";
 			// 
 			// textBox2
 			// 
@@ -143,9 +143,9 @@ namespace EXE2DLL {
 			this->label4->AutoSize = true;
 			this->label4->Location = System::Drawing::Point(17, 143);
 			this->label4->Name = L"label4";
-			this->label4->Size = System::Drawing::Size(260, 13);
+			this->label4->Size = System::Drawing::Size(251, 13);
 			this->label4->TabIndex = 7;
-			this->label4->Text = L"Note: Only stdcall and cdecl  can export func symbols";
+			this->label4->Text = L"Note: For fastcall name should be @name@agrnum";
 			// 
 			// frm_modify
 			// 
@@ -183,9 +183,9 @@ namespace EXE2DLL {
 		if (textBox1->Text == "" || textBox2->Text == "") return;
 		if (modifyflag == true)
 		{
-			int hexNumber;
-			sscanf((marshal_as<std::string>(textBox2->Text)).c_str(), "%x", &hexNumber);
-			EXETODLL::ModifyExtportFuncton(EXE2DLL::EXETODLL::FilePath, gcnew String(EXE2DLL::fun_name.c_str()), textBox1->Text, hexNumber);
+			int funcrva;
+			sscanf((marshal_as<std::string>(textBox2->Text)).c_str(), "%x", &funcrva);
+			EXETODLL::ModifyExtportFuncton(EXE2DLL::EXETODLL::FilePath, gcnew String(EXE2DLL::fun_name.c_str()), textBox1->Text, funcrva);
 		}
 		else
 		{

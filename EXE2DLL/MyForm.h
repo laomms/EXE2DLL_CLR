@@ -138,10 +138,10 @@ namespace EXE2DLL
 			this->tabPage2 = (gcnew System::Windows::Forms::TabPage());
 			this->listView2 = (gcnew System::Windows::Forms::ListView());
 			this->contextMenuStrip2 = (gcnew System::Windows::Forms::ContextMenuStrip(this->components));
-			this->AddSectionMenu = (gcnew System::Windows::Forms::ToolStripMenuItem());
 			this->AddExporFuncMenuI = (gcnew System::Windows::Forms::ToolStripMenuItem());
 			this->ModifyExportFuncMenu = (gcnew System::Windows::Forms::ToolStripMenuItem());
 			this->DeletExoprtFuncMenu = (gcnew System::Windows::Forms::ToolStripMenuItem());
+			this->AddSectionMenu = (gcnew System::Windows::Forms::ToolStripMenuItem());
 			this->saveFileDialog1 = (gcnew System::Windows::Forms::SaveFileDialog());
 			this->contextMenuStrip1->SuspendLayout();
 			this->groupBox1->SuspendLayout();
@@ -259,6 +259,7 @@ namespace EXE2DLL
 			this->listView1->Size = System::Drawing::Size(589, 178);
 			this->listView1->TabIndex = 4;
 			this->listView1->UseCompatibleStateImageBehavior = false;
+			this->listView1->SelectedIndexChanged += gcnew System::EventHandler(this, &MyForm::listView1_SelectedIndexChanged);
 			// 
 			// tabPage2
 			// 
@@ -287,18 +288,11 @@ namespace EXE2DLL
 			// contextMenuStrip2
 			// 
 			this->contextMenuStrip2->Items->AddRange(gcnew cli::array< System::Windows::Forms::ToolStripItem^  >(4) {
-				this->AddSectionMenu,
-					this->AddExporFuncMenuI, this->ModifyExportFuncMenu, this->DeletExoprtFuncMenu
+				this->AddExporFuncMenuI,
+					this->ModifyExportFuncMenu, this->DeletExoprtFuncMenu, this->AddSectionMenu
 			});
 			this->contextMenuStrip2->Name = L"contextMenuStrip1";
 			this->contextMenuStrip2->Size = System::Drawing::Size(173, 92);
-			// 
-			// AddSectionMenu
-			// 
-			this->AddSectionMenu->Name = L"AddSectionMenu";
-			this->AddSectionMenu->Size = System::Drawing::Size(172, 22);
-			this->AddSectionMenu->Text = L"AddSection";
-			this->AddSectionMenu->Click += gcnew System::EventHandler(this, &MyForm::toolStripMenuItem1_Click);
 			// 
 			// AddExporFuncMenuI
 			// 
@@ -319,8 +313,14 @@ namespace EXE2DLL
 			this->DeletExoprtFuncMenu->Name = L"DeletExoprtFuncMenu";
 			this->DeletExoprtFuncMenu->Size = System::Drawing::Size(172, 22);
 			this->DeletExoprtFuncMenu->Text = L"DeletExoprtFunc";
-			this->DeletExoprtFuncMenu->Visible = false;
 			this->DeletExoprtFuncMenu->Click += gcnew System::EventHandler(this, &MyForm::DeletExoprtFuncMenu_Click);
+			// 
+			// AddSectionMenu
+			// 
+			this->AddSectionMenu->Name = L"AddSectionMenu";
+			this->AddSectionMenu->Size = System::Drawing::Size(172, 22);
+			this->AddSectionMenu->Text = L"AddSection";
+			this->AddSectionMenu->Click += gcnew System::EventHandler(this, &MyForm::toolStripMenuItem1_Click);
 			// 
 			// MyForm
 			// 
@@ -576,9 +576,12 @@ namespace EXE2DLL
 
     private: System::Void DeletExoprtFuncMenu_Click(System::Object^ sender, System::EventArgs^ e) 
 	{
-		if (listView2->SelectedItems->Count > 0)
-		{
-			EXETODLL::ModifyExtportFuncton(EXE2DLL::EXETODLL::FilePath, gcnew String(EXE2DLL::fun_name.c_str()), "", 0);
+		if (listView2->SelectedItems->Count > 0)		{
+			EXE2DLL::fun_name = marshal_as<std::string>(listView2->SelectedItems[0]->SubItems[4]->Text);
+			String^ func_rva= listView2->SelectedItems[0]->SubItems[5]->Text;		
+			int funcrva;
+			sscanf((marshal_as<std::string>(func_rva)).c_str(), "%x", &funcrva);
+			EXETODLL::DeleteExtportFuncton(EXE2DLL::EXETODLL::FilePath, gcnew String(EXE2DLL::fun_name.c_str()), funcrva);
 			updatecontrol();
 		}
     }
@@ -592,5 +595,7 @@ namespace EXE2DLL
 			
 		}
     }
-    };
+	private: System::Void listView1_SelectedIndexChanged(System::Object^ sender, System::EventArgs^ e) {
+	}
+};
 }

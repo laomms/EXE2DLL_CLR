@@ -1,5 +1,6 @@
 #include "pch.h"
 #include <iostream>
+#include <string>
 #include <windows.h>
 #include <cstring>
 #include <memory.h>
@@ -8,6 +9,8 @@
 #include <sstream>
 #include "EXE2DLL.h"
 #include "ExeToDll.h"
+#include <msclr\marshal.h>
+#include <msclr\marshal_cppstd.h>
 #pragma comment(lib,"Imagehlp.lib")
 
 #ifdef _WIN64
@@ -27,6 +30,21 @@ DWORD SizeOfFile;
 #define P2ALIGNDOWN(x, align) ((x) & -(align))
 // align x up to the nearest multiple of align. align must be a power of 2.
 #define P2ALIGNUP(x, align) (-(-(x) & -(align)))
+
+vector<string> split(string s, string delimiter) {
+	size_t pos_start = 0, pos_end, delim_len = delimiter.length();
+	string token;
+	vector<string> res;
+
+	while ((pos_end = s.find(delimiter, pos_start)) != string::npos) {
+		token = s.substr(pos_start, pos_end - pos_start);
+		pos_start = pos_end + delim_len;
+		res.push_back(token);
+	}
+
+	res.push_back(s.substr(pos_start));
+	return res;
+}
 
 BYTE* get_nt_hdrs(IN const BYTE* pe_buffer)
 {
@@ -52,7 +70,6 @@ BYTE* get_nt_hdrs(IN const BYTE* pe_buffer)
 	}
 	return (BYTE*)inh;
 }
-
 
 size_t add_section(const char* path, const char* section_name, DWORD VirtualSize, const char* str_Characteristics, size_t RvaRawData)//target_file.exe .mySection 0x231 rdata 
 {
@@ -523,6 +540,7 @@ BOOL modify_export_table(const char* file_name, const char* old_name, const char
 	{
 		len = strlen(new_name);
 		::memcpy(FuncName, new_name, len+1);
+		//add_export_table(file_name,  old_name, new_name,  FuncRva);
 	}
 	else
 	{		
@@ -617,7 +635,6 @@ BOOL modify_export_table(const char* file_name, const char* old_name, const char
 				memcpy(pAddressOfFunctions, (char*)(DWORD)&FuncRva,  4);
 				LPVOID pNames = (LPVOID)(pView + RvaToFoa((DWORD)pView, AddressOfName[i]));
 				memcpy(pNames, FuncName, len);
-
 				found=true;
 				break;
 			}
@@ -627,6 +644,175 @@ BOOL modify_export_table(const char* file_name, const char* old_name, const char
 			wcout << L"Can not finding this functin name." << endl;
 		}
 	}	
+	CloseHandle(hFile);
+	UnmapViewOfFile((PVOID)pView);
+	CloseHandle(hFileMapping);
+	return TRUE;
+};
+
+BOOL delete_export_table(const char* file_name, const char* func_name, size_t FuncRva)
+{
+	size_t  RvaSection;
+	DWORD NewAddSize = 0;
+	static std::vector<std::string>  func_list = EXE2DLL::funlist;
+	GetExpTableList(file_name, func_list);
+
+	DWORD VirtualSize = 0;
+	HANDLE hFile = CreateFileA(file_name, GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+	if (hFile == INVALID_HANDLE_VALUE) {
+		wcout << L"Cannot open file (0x" << hex << GetLastError() << L")" << endl;
+		return false;
+	}
+	LPDWORD dwFileSizeHigh = 0;
+	DWORD dwFileSizeLow = 0;
+	dwFileSizeLow = GetFileSize(hFile, dwFileSizeHigh);
+	if (dwFileSizeHigh != NULL) {
+		CloseHandle(hFile);
+		wcout << L"Big files not supported." << endl;
+	}
+	wcout << L"File size in bytes: " << dwFileSizeLow << endl;
+
+	HANDLE hFileMapping = CreateFileMapping(hFile, NULL, PAGE_READWRITE, 0, 0, NULL);
+	if (hFileMapping == INVALID_HANDLE_VALUE) return 0;
+	PBYTE pView = (PBYTE)MapViewOfFile(hFileMapping, FILE_MAP_ALL_ACCESS, 0, 0, 0);
+	if (pView == NULL) {
+		wcout << L"Error in MapFileReadOnly (" << GetLastError() << L")" << endl;
+		return 0;
+	}
+
+	// Checking the file.
+	PIMAGE_DOS_HEADER dosHeader = (PIMAGE_DOS_HEADER)pView;
+	if (dosHeader->e_magic != IMAGE_DOS_SIGNATURE) {
+		wcout << L"Invalid PE file" << endl;
+		CloseHandle(hFile);
+		return 0;
+	}
+	PIMAGE_NT_HEADERS ntHeaders = (PIMAGE_NT_HEADERS)((UINT_PTR)pView + dosHeader->e_lfanew);
+#ifdef _WIN64
+#define MACHINE IMAGE_FILE_MACHINE_AMD64
+#else
+#define MACHINE IMAGE_FILE_MACHINE_I386
+#endif
+
+	if (ntHeaders->Signature != IMAGE_NT_SIGNATURE || ntHeaders->FileHeader.Machine != MACHINE) {
+		wcout << L"Invalid PE file" << endl;
+		CloseHandle(hFile);
+		return 0;
+	}
+
+	char* FuncAddrList = new char[4]();
+	WORD numberOfSections = ntHeaders->FileHeader.NumberOfSections;
+	DWORD fileAlignment = ntHeaders->OptionalHeader.FileAlignment;
+	PIMAGE_FILE_HEADER fileHeader = &(ntHeaders->FileHeader);
+	WORD sizeOfOptionalHeader = ntHeaders->FileHeader.SizeOfOptionalHeader;
+	PIMAGE_OPTIONAL_HEADER pOptionalHeader = (PIMAGE_OPTIONAL_HEADER)((DWORD)ntHeaders + 4 + IMAGE_SIZEOF_FILE_HEADER);
+	PIMAGE_SECTION_HEADER pSecHeader = (PIMAGE_SECTION_HEADER)((PUCHAR)ntHeaders + sizeof(IMAGE_NT_HEADERS));
+	if (pOptionalHeader->DataDirectory[0].VirtualAddress == 0) //如果没有导出表
+	{
+		wcout << L"No Export Table find." << endl;
+		CloseHandle(hFile);
+		UnmapViewOfFile((PVOID)pView);
+		CloseHandle(hFileMapping);
+		return 0;
+	}
+	else
+	{
+		//寻找导出表所在区段
+		DWORD dwRva = pOptionalHeader->DataDirectory[0].VirtualAddress;
+		PIMAGE_EXPORT_DIRECTORY pExportDirectory;
+		for (int i = 0; i < ntHeaders->FileHeader.NumberOfSections; i++) {
+			if (pSecHeader[i].Misc.VirtualSize == 0)break;
+			DWORD dwSectionBeginRva = pSecHeader[i].VirtualAddress;
+			RvaSection = pSecHeader[i].VirtualAddress;
+			DWORD dwSectionEndRva = pSecHeader[i].VirtualAddress + pSecHeader[i].SizeOfRawData;
+			if (dwRva >= dwSectionBeginRva && dwRva <= dwSectionEndRva) {
+				pExportDirectory = (PIMAGE_EXPORT_DIRECTORY)((DWORD)pView + pSecHeader[i].PointerToRawData);
+				pSecHeader[i].Characteristics = 0x60000020;
+			}
+		}
+		BOOL found = false;
+		DWORD* AddressOfName = (DWORD*)(pView + RvaToFoa((DWORD)pView, pExportDirectory->AddressOfNames));
+		//是否有该函数名
+		int func_positon = (int)pExportDirectory->NumberOfNames;
+		for (int i = 0; i < (int)pExportDirectory->NumberOfNames; i++)
+		{
+			if (i < func_positon)
+			{
+				char* func_names = (char*)(pView + RvaToFoa((DWORD)pView, AddressOfName[i]));
+				if (strcmp(func_name, func_names) == 0)
+				{
+					found = true;
+					func_positon = i;
+
+					//移动pAddressOfFunctions
+					LPVOID pAddressOfFunctions = (LPVOID)(pView + RvaToFoa((DWORD)pView, pExportDirectory->AddressOfFunctions) + i * 4);
+					string strFuncAddr = split(func_list[i+1], "@")[1];
+					unsigned long funcrva = strtoul(strFuncAddr.c_str(), 0, 16);
+					memcpy(pAddressOfFunctions, &funcrva, 4);
+
+					//移动funcname
+					LPVOID pNames = (LPVOID)(pView + RvaToFoa((DWORD)pView, AddressOfName[i]));
+					string strFuncName = split(func_list[i + 1], "@")[3];
+					int len = strFuncName.size() + 1;					
+					char* cstr=new char[len];
+					std::fill_n(cstr, len, 0);
+					strFuncName.copy(cstr, len);				    		
+					strcpy(cstr, strFuncName.c_str());
+					memcpy(pNames, cstr, len);
+
+					//赋值下一个AddressOfNames
+					DWORD* pOldAddressOfNames = (DWORD*)(pView + RvaToFoa((DWORD)pView, pExportDirectory->AddressOfNames) + i * 4);
+					LPVOID pAddressOfNames = (LPVOID)(pView + RvaToFoa((DWORD)pView, pExportDirectory->AddressOfNames) + ( i + 1) * 4);	
+					DWORD newPtr = (DWORD)*pOldAddressOfNames + strFuncName.length() + 1;
+					memcpy(pAddressOfNames, (char*)&newPtr, 4);					
+				}
+			}
+			else
+			{
+				if (i != pExportDirectory->NumberOfNames-1 )
+				{
+					LPVOID pAddressOfFunctions = (LPVOID)(pView + RvaToFoa((DWORD)pView, pExportDirectory->AddressOfFunctions) + i * 4);
+					string strFuncAddr = split(func_list[i + 1], "@")[1];
+					unsigned long funcrva = strtoul(strFuncAddr.c_str(), 0, 16);
+					memcpy(pAddressOfFunctions, &funcrva, 4);
+					LPVOID pNames = (LPVOID)(pView + RvaToFoa((DWORD)pView, AddressOfName[i]));
+					string strFuncName = split(func_list[i + 1], "@")[3];
+					int len = strFuncName.size() + 1;
+					char* cstr = new char[len];
+					std::fill_n(cstr, len, 0);
+					strFuncName.copy(cstr, len);
+					strcpy(cstr, strFuncName.c_str());
+					memcpy(pNames, cstr, len);
+					DWORD* pOldAddressOfNames = (DWORD*)(pView + RvaToFoa((DWORD)pView, pExportDirectory->AddressOfNames) + i * 4);
+					LPVOID pAddressOfNames = (LPVOID)(pView + RvaToFoa((DWORD)pView, pExportDirectory->AddressOfNames) + (i + 1) * 4);
+					DWORD newPtr = (DWORD)*pOldAddressOfNames + strFuncName.length() + 1;
+					memcpy(pAddressOfNames, (char*)&newPtr, 4);	
+				}
+				else
+				{
+					LPVOID pAddressOfFunctions = (LPVOID)(pView + RvaToFoa((DWORD)pView, pExportDirectory->AddressOfFunctions) + i * 4);
+					memset(pAddressOfFunctions, 0, 4);
+					LPVOID pNames = (LPVOID)(pView + RvaToFoa((DWORD)pView, AddressOfName[i]));
+					char* charData = (char*)pNames;
+					memset(pNames,0, strlen(charData)+1);		
+					//赋值下一个AddressOfNameOrdinals
+					/*LPVOID pAddressOfNameOrdinals = (LPVOID)(pView + RvaToFoa((DWORD)pView, pExportDirectory->AddressOfNameOrdinals) + (i + 1) * 4);
+					memset(pAddressOfNameOrdinals, 0, 2);*/
+					break;
+				}
+			}
+			
+		}
+		NewAddSize = pExportDirectory->Name - RvaSection - strlen(func_name) - 1;
+		pExportDirectory->NumberOfFunctions = pExportDirectory->NumberOfFunctions - 1;
+		pExportDirectory->NumberOfNames = pExportDirectory->NumberOfNames - 1;
+		if (found == false)
+		{
+			wcout << L"Can not finding this functin name." << endl;
+		}
+	}
+	
+	pOptionalHeader->DataDirectory[0].Size = NewAddSize;
 	CloseHandle(hFile);
 	UnmapViewOfFile((PVOID)pView);
 	CloseHandle(hFileMapping);
