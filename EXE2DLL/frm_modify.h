@@ -81,7 +81,7 @@ namespace EXE2DLL {
 			// label1
 			// 
 			this->label1->AutoSize = true;
-			this->label1->Location = System::Drawing::Point(4, 18);
+			this->label1->Location = System::Drawing::Point(10, 18);
 			this->label1->Name = L"label1";
 			this->label1->Size = System::Drawing::Size(62, 13);
 			this->label1->TabIndex = 0;
@@ -89,9 +89,9 @@ namespace EXE2DLL {
 			// 
 			// textBox1
 			// 
-			this->textBox1->Location = System::Drawing::Point(66, 15);
+			this->textBox1->Location = System::Drawing::Point(72, 15);
 			this->textBox1->Name = L"textBox1";
-			this->textBox1->Size = System::Drawing::Size(217, 20);
+			this->textBox1->Size = System::Drawing::Size(257, 20);
 			this->textBox1->TabIndex = 1;
 			this->textBox1->Text = L"e.g.  func1/func1@8/@func1@12 ";
 			this->toolTip1->SetToolTip(this->textBox1, L"Input the function name.");
@@ -99,7 +99,7 @@ namespace EXE2DLL {
 			// label2
 			// 
 			this->label2->AutoSize = true;
-			this->label2->Location = System::Drawing::Point(4, 44);
+			this->label2->Location = System::Drawing::Point(10, 44);
 			this->label2->Name = L"label2";
 			this->label2->Size = System::Drawing::Size(56, 13);
 			this->label2->TabIndex = 2;
@@ -107,24 +107,24 @@ namespace EXE2DLL {
 			// 
 			// textBox2
 			// 
-			this->textBox2->Location = System::Drawing::Point(66, 41);
+			this->textBox2->Location = System::Drawing::Point(72, 41);
 			this->textBox2->Name = L"textBox2";
-			this->textBox2->Size = System::Drawing::Size(217, 20);
+			this->textBox2->Size = System::Drawing::Size(257, 20);
 			this->textBox2->TabIndex = 3;
 			this->textBox2->Text = L"e.g.  0x00012345 (rva-base)";
 			// 
 			// textBox3
 			// 
-			this->textBox3->Location = System::Drawing::Point(66, 67);
+			this->textBox3->Location = System::Drawing::Point(72, 67);
 			this->textBox3->Name = L"textBox3";
-			this->textBox3->Size = System::Drawing::Size(217, 20);
+			this->textBox3->Size = System::Drawing::Size(257, 20);
 			this->textBox3->TabIndex = 5;
 			this->textBox3->Text = L"e.g.  .idata";
 			// 
 			// label3
 			// 
 			this->label3->AutoSize = true;
-			this->label3->Location = System::Drawing::Point(7, 70);
+			this->label3->Location = System::Drawing::Point(13, 70);
 			this->label3->Name = L"label3";
 			this->label3->Size = System::Drawing::Size(46, 13);
 			this->label3->TabIndex = 4;
@@ -132,7 +132,7 @@ namespace EXE2DLL {
 			// 
 			// button1
 			// 
-			this->button1->Location = System::Drawing::Point(109, 98);
+			this->button1->Location = System::Drawing::Point(126, 97);
 			this->button1->Name = L"button1";
 			this->button1->Size = System::Drawing::Size(91, 27);
 			this->button1->TabIndex = 6;
@@ -143,26 +143,26 @@ namespace EXE2DLL {
 			// label4
 			// 
 			this->label4->AutoSize = true;
-			this->label4->Location = System::Drawing::Point(9, 133);
+			this->label4->Location = System::Drawing::Point(2, 133);
 			this->label4->Name = L"label4";
-			this->label4->Size = System::Drawing::Size(275, 13);
+			this->label4->Size = System::Drawing::Size(341, 13);
 			this->label4->TabIndex = 7;
-			this->label4->Text = L"For x86 fastcall name should be @func_name@agr_num";
+			this->label4->Text = L"For x86 fastcall name should be @func_name@agr_num, cdecl normal";
 			// 
 			// label5
 			// 
 			this->label5->AutoSize = true;
-			this->label5->Location = System::Drawing::Point(30, 150);
+			this->label5->Location = System::Drawing::Point(14, 149);
 			this->label5->Name = L"label5";
-			this->label5->Size = System::Drawing::Size(231, 13);
+			this->label5->Size = System::Drawing::Size(315, 13);
 			this->label5->TabIndex = 8;
-			this->label5->Text = L"stdcall/thiscall should be func_name@agr_num";
+			this->label5->Text = L"stdcall should be func_name@agr_num, thiscall can not exported";
 			// 
 			// frm_modify
 			// 
 			this->AutoScaleDimensions = System::Drawing::SizeF(6, 13);
 			this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
-			this->ClientSize = System::Drawing::Size(295, 168);
+			this->ClientSize = System::Drawing::Size(350, 168);
 			this->Controls->Add(this->label5);
 			this->Controls->Add(this->label4);
 			this->Controls->Add(this->button1);
