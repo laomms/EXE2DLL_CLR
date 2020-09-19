@@ -143,9 +143,9 @@ namespace EXE2DLL {
 			this->label4->AutoSize = true;
 			this->label4->Location = System::Drawing::Point(17, 143);
 			this->label4->Name = L"label4";
-			this->label4->Size = System::Drawing::Size(251, 13);
+			this->label4->Size = System::Drawing::Size(271, 13);
 			this->label4->TabIndex = 7;
-			this->label4->Text = L"Note: For fastcall name should be @name@agrnum";
+			this->label4->Text = L"Note: For x86 fastcall name should be @name@agrnum";
 			// 
 			// frm_modify
 			// 
