@@ -48,6 +48,7 @@ namespace EXE2DLL {
 	private: System::Windows::Forms::Button^ button1;
 	private: System::Windows::Forms::ToolTip^ toolTip1;
 	private: System::Windows::Forms::Label^ label4;
+	private: System::Windows::Forms::Label^ label5;
 	private: System::ComponentModel::IContainer^ components;
 
 	private:
@@ -74,6 +75,7 @@ namespace EXE2DLL {
 			this->button1 = (gcnew System::Windows::Forms::Button());
 			this->toolTip1 = (gcnew System::Windows::Forms::ToolTip(this->components));
 			this->label4 = (gcnew System::Windows::Forms::Label());
+			this->label5 = (gcnew System::Windows::Forms::Label());
 			this->SuspendLayout();
 			// 
 			// label1
@@ -91,7 +93,7 @@ namespace EXE2DLL {
 			this->textBox1->Name = L"textBox1";
 			this->textBox1->Size = System::Drawing::Size(217, 20);
 			this->textBox1->TabIndex = 1;
-			this->textBox1->Text = L"e.g. func1  e.g. @func1@12 ";
+			this->textBox1->Text = L"e.g. func1/func1@8/@func1@12 ";
 			this->toolTip1->SetToolTip(this->textBox1, L"Input the function name.");
 			// 
 			// label2
@@ -130,7 +132,7 @@ namespace EXE2DLL {
 			// 
 			// button1
 			// 
-			this->button1->Location = System::Drawing::Point(109, 101);
+			this->button1->Location = System::Drawing::Point(109, 98);
 			this->button1->Name = L"button1";
 			this->button1->Size = System::Drawing::Size(91, 27);
 			this->button1->TabIndex = 6;
@@ -141,17 +143,27 @@ namespace EXE2DLL {
 			// label4
 			// 
 			this->label4->AutoSize = true;
-			this->label4->Location = System::Drawing::Point(17, 143);
+			this->label4->Location = System::Drawing::Point(9, 133);
 			this->label4->Name = L"label4";
-			this->label4->Size = System::Drawing::Size(271, 13);
+			this->label4->Size = System::Drawing::Size(275, 13);
 			this->label4->TabIndex = 7;
-			this->label4->Text = L"Note: For x86 fastcall name should be @name@agrnum";
+			this->label4->Text = L"For x86 fastcall name should be @func_name@agr_num";
+			// 
+			// label5
+			// 
+			this->label5->AutoSize = true;
+			this->label5->Location = System::Drawing::Point(30, 150);
+			this->label5->Name = L"label5";
+			this->label5->Size = System::Drawing::Size(231, 13);
+			this->label5->TabIndex = 8;
+			this->label5->Text = L"stdcall/thiscall should be func_name@agr_num";
 			// 
 			// frm_modify
 			// 
 			this->AutoScaleDimensions = System::Drawing::SizeF(6, 13);
 			this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
 			this->ClientSize = System::Drawing::Size(295, 168);
+			this->Controls->Add(this->label5);
 			this->Controls->Add(this->label4);
 			this->Controls->Add(this->button1);
 			this->Controls->Add(this->textBox3);
