@@ -93,7 +93,7 @@ namespace EXE2DLL {
 			this->textBox1->Name = L"textBox1";
 			this->textBox1->Size = System::Drawing::Size(217, 20);
 			this->textBox1->TabIndex = 1;
-			this->textBox1->Text = L"e.g. func1/func1@8/@func1@12 ";
+			this->textBox1->Text = L"e.g.  func1/func1@8/@func1@12 ";
 			this->toolTip1->SetToolTip(this->textBox1, L"Input the function name.");
 			// 
 			// label2
