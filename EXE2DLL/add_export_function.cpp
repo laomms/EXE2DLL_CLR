@@ -354,6 +354,8 @@ DWORD FoaToRva(DWORD FileBuff, DWORD Foa)
 	return Foa;
 }
 
+
+
 BOOL add_export_table(const char* file_name, const char* section_name, const char* FuncName, size_t FuncRva)
 {
 	DWORD VirtualSize = 0;
@@ -842,6 +844,11 @@ BOOL delete_export_table(const char* file_name, const char* func_name, size_t Fu
 	CloseHandle(hFileMapping);
 	return TRUE;
 };
+
+char* __unDName(char*, const char*, int, void*, void*, int)
+{
+	return nullptr;
+}
 
 int GetExpTableList(const char* file_name, std::vector<string>& funlist)
 {

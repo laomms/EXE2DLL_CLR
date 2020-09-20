@@ -15,6 +15,8 @@
 #include "frm_Directory.h"
 #include "ExeToDll.h"
 
+#include "dbghelp.h"
+#pragma comment(lib, "dbghelp.lib")
 
 
 namespace EXE2DLL 
@@ -368,7 +370,8 @@ namespace EXE2DLL
 		this->listView2->Columns->Add("FuncRVA.", 100, HorizontalAlignment::Center);
 		this->listView2->Columns->Add("NameRVA", 100, HorizontalAlignment::Center);
 		this->listView2->Columns->Add("FuncName", 100, HorizontalAlignment::Center);		
-		this->listView2->Columns->Add("Section", this->listView1->Width - 200 - 200 - 40 - 5, HorizontalAlignment::Center);
+		this->listView2->Columns->Add("Section", 80, HorizontalAlignment::Center);
+		this->listView2->Columns->Add("Undname", 300, HorizontalAlignment::Center);
 	}
 
 	private: System::Void textBox1_DragEnter(System::Object^ sender, System::Windows::Forms::DragEventArgs^ e)
@@ -422,6 +425,12 @@ namespace EXE2DLL
 					lvi->SubItems->Add(str->Split('#')[2]->ToString());
 					lvi->SubItems->Add(str->Split('#')[3]->ToString());
 					lvi->SubItems->Add(str->Split('#')[4]->ToString());
+					const char* decorated_name = (char*)(void*)Marshal::StringToHGlobalAnsi(str->Split('#')[3]->ToString());
+					char undecorated_name[1024];
+					if (UnDecorateSymbolName(decorated_name, undecorated_name, sizeof(undecorated_name) / sizeof(*undecorated_name), UNDNAME_COMPLETE))
+					{
+						lvi->SubItems->Add(gcnew String(undecorated_name));
+					}					
 					listView2->Items->Add(lvi);
 				}
 				this->listView2->EndUpdate();
@@ -488,6 +497,12 @@ namespace EXE2DLL
 					lvi->SubItems->Add(str->Split('#')[2]->ToString());
 					lvi->SubItems->Add(str->Split('#')[3]->ToString());
 					lvi->SubItems->Add(str->Split('#')[4]->ToString());
+					const char* decorated_name = (char*)(void*)Marshal::StringToHGlobalAnsi(str->Split('#')[3]->ToString());
+					char undecorated_name[1024];
+					if (UnDecorateSymbolName(decorated_name, undecorated_name, sizeof(undecorated_name) / sizeof(*undecorated_name), UNDNAME_COMPLETE))
+					{
+						lvi->SubItems->Add(gcnew String(undecorated_name));
+					}
 					listView2->Items->Add(lvi);
 				}
 				this->listView2->EndUpdate();

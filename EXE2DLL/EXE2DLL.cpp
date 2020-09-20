@@ -1,9 +1,15 @@
 #include "pch.h"
 #include "EXE2DLL.h"
 #include "MyForm.h"
+
+
+
+#include "dbghelp.h"
+#pragma comment(lib, "dbghelp.lib")
+
+//extern char* __unDName(char*, const char*, int, void*, void*, int);
+
 using namespace EXE2DLL;
-
-
 
 	using namespace System;
 	using namespace System::Windows::Forms;

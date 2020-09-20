@@ -109,7 +109,7 @@ int GetPeInfo(const char* file_name, std::vector<std::string>& PElist, std::vect
 		memset(data, 0, 32);
 	}
 
-	printf("======================= 区 段 表 =======================\n");
+	//printf("======================= 区 段 表 =======================\n");
 	//获取区段表头指针
 	PIMAGE_SECTION_HEADER pSectionHeader = IMAGE_FIRST_SECTION(pNtHeader);
 	//获取区段个数
