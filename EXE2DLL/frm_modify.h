@@ -47,7 +47,7 @@ namespace EXE2DLL {
 	private: System::Windows::Forms::Label^ label3;
 	private: System::Windows::Forms::Button^ button1;
 	private: System::Windows::Forms::ToolTip^ toolTip1;
-	private: System::Windows::Forms::Label^ label4;
+
 	private: System::Windows::Forms::Label^ label5;
 	private: System::ComponentModel::IContainer^ components;
 
@@ -74,7 +74,6 @@ namespace EXE2DLL {
 			this->label3 = (gcnew System::Windows::Forms::Label());
 			this->button1 = (gcnew System::Windows::Forms::Button());
 			this->toolTip1 = (gcnew System::Windows::Forms::ToolTip(this->components));
-			this->label4 = (gcnew System::Windows::Forms::Label());
 			this->label5 = (gcnew System::Windows::Forms::Label());
 			this->SuspendLayout();
 			// 
@@ -91,7 +90,7 @@ namespace EXE2DLL {
 			// 
 			this->textBox1->Location = System::Drawing::Point(72, 15);
 			this->textBox1->Name = L"textBox1";
-			this->textBox1->Size = System::Drawing::Size(257, 20);
+			this->textBox1->Size = System::Drawing::Size(196, 20);
 			this->textBox1->TabIndex = 1;
 			this->textBox1->Text = L"e.g.  func1/func1@8/@func1@12 ";
 			this->toolTip1->SetToolTip(this->textBox1, L"Input the function name.");
@@ -109,7 +108,7 @@ namespace EXE2DLL {
 			// 
 			this->textBox2->Location = System::Drawing::Point(72, 41);
 			this->textBox2->Name = L"textBox2";
-			this->textBox2->Size = System::Drawing::Size(257, 20);
+			this->textBox2->Size = System::Drawing::Size(196, 20);
 			this->textBox2->TabIndex = 3;
 			this->textBox2->Text = L"e.g.  0x00012345 (rva-base)";
 			// 
@@ -117,7 +116,7 @@ namespace EXE2DLL {
 			// 
 			this->textBox3->Location = System::Drawing::Point(72, 67);
 			this->textBox3->Name = L"textBox3";
-			this->textBox3->Size = System::Drawing::Size(257, 20);
+			this->textBox3->Size = System::Drawing::Size(196, 20);
 			this->textBox3->TabIndex = 5;
 			this->textBox3->Text = L"e.g.  .idata";
 			// 
@@ -132,7 +131,7 @@ namespace EXE2DLL {
 			// 
 			// button1
 			// 
-			this->button1->Location = System::Drawing::Point(126, 97);
+			this->button1->Location = System::Drawing::Point(98, 106);
 			this->button1->Name = L"button1";
 			this->button1->Size = System::Drawing::Size(91, 27);
 			this->button1->TabIndex = 6;
@@ -140,31 +139,21 @@ namespace EXE2DLL {
 			this->button1->UseVisualStyleBackColor = true;
 			this->button1->Click += gcnew System::EventHandler(this, &frm_modify::button1_Click);
 			// 
-			// label4
-			// 
-			this->label4->AutoSize = true;
-			this->label4->Location = System::Drawing::Point(2, 133);
-			this->label4->Name = L"label4";
-			this->label4->Size = System::Drawing::Size(341, 13);
-			this->label4->TabIndex = 7;
-			this->label4->Text = L"For x86 fastcall name should be @func_name@agr_num, cdecl normal";
-			// 
 			// label5
 			// 
 			this->label5->AutoSize = true;
-			this->label5->Location = System::Drawing::Point(14, 149);
+			this->label5->Location = System::Drawing::Point(10, 146);
 			this->label5->Name = L"label5";
-			this->label5->Size = System::Drawing::Size(315, 13);
+			this->label5->Size = System::Drawing::Size(256, 13);
 			this->label5->TabIndex = 8;
-			this->label5->Text = L"stdcall should be func_name@agr_num, thiscall can not exported";
+			this->label5->Text = L" Use IDA to obtain the name of the exported function";
 			// 
 			// frm_modify
 			// 
 			this->AutoScaleDimensions = System::Drawing::SizeF(6, 13);
 			this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
-			this->ClientSize = System::Drawing::Size(350, 168);
+			this->ClientSize = System::Drawing::Size(276, 168);
 			this->Controls->Add(this->label5);
-			this->Controls->Add(this->label4);
 			this->Controls->Add(this->button1);
 			this->Controls->Add(this->textBox3);
 			this->Controls->Add(this->label3);
